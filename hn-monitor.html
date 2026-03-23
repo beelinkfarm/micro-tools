@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HN Watch — Hacker News Thread Monitor</title>
+  <meta name="description" content="Monitor Hacker News threads for new comments. Watch discussions, get notified of updates, never miss a reply." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset & tokens ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent:        #f0a500;
+      --accent-dim:    #c07d00;
+      --accent-glow:   rgba(240, 165, 0, 0.18);
+      --accent-glow-s: rgba(240, 165, 0, 0.08);
+      --hn-orange:     #ff6600;
+
+      --radius-sm: 6px;
+      --radius:    12px;
+      --radius-lg: 18px;
+
+      --font-head: 'Syne', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-body: 'Inter', sans-serif;
+
+      --transition: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="dark"] {
+      --bg:          #0d0d0f;
+      --bg-surface:  #141417;
+      --bg-raised:   #1c1c21;
+      --bg-overlay:  #242429;
+      --border:      rgba(255,255,255,0.07);
+      --border-mid:  rgba(255,255,255,0.12);
+      --text-primary:   #f0eff2;
+      --text-secondary: #9896a1;
+      --text-muted:     #5a5862;
+      --scrollbar-thumb: #2e2e36;
+      --new-bg:      rgba(240, 165, 0, 0.06);
+      --new-border:  rgba(240, 165, 0, 0.25);
+      --danger:      rgba(255, 80, 80, 0.12);
+    }
+
+    [data-theme="light"] {
+      --bg:          #f5f4f7;
+      --bg-surface:  #ffffff;
+      --bg-raised:   #f0eff4;
+      --bg-overlay:  #e8e7ed;
+      --border:      rgba(0,0,0,0.07);
+      --border-mid:  rgba(0,0,0,0.12);
+      --text-primary:   #141417;
+      --text-secondary: #5c5a68;
+      --text-muted:     #a09dae;
+      --scrollbar-thumb: #ccc;
+      --new-bg:      rgba(240, 165, 0, 0.08);
+      --new-border:  rgba(240, 165, 0, 0.35);
+      --danger:      rgba(255, 80, 80, 0.08);
+    }
+
+    /* ─── Base ───────────────────────────────────────────────── */
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+    /* ─── Layout ─────────────────────────────────────────────── */
+    .page-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
+    .main-content { flex: 1; max-width: 900px; margin: 0 auto; padding: 0 24px 80px; width: 100%; }
+
+    /* ─── Header ─────────────────────────────────────────────── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--hn-orange);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      font-family: var(--font-head);
+    }
+
+    .logo-text {
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .logo-text span { color: var(--hn-orange); }
+
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+
+    .badge-mono {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      border: 1px solid var(--border-mid);
+      padding: 3px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.04em;
+    }
+
+    .theme-toggle {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      border: 1px solid var(--border-mid);
+      background: var(--bg-raised);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color var(--transition), background var(--transition), color var(--transition);
+      font-size: 16px;
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-glow-s);
+    }
+
+    .icon-sun, .icon-moon { display: none; }
+    [data-theme="dark"]  .icon-moon { display: block; }
+    [data-theme="light"] .icon-sun  { display: block; }
+
+    /* ─── Hero ───────────────────────────────────────────────── */
+    .hero {
+      padding: 48px 0 36px;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .hero-title {
+      font-family: var(--font-head);
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .hero-title .hn { color: var(--hn-orange); }
+
+    .hero-sub {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      max-width: 520px;
+      line-height: 1.7;
+    }
+
+    /* ─── Input card ─────────────────────────────────────────── */
+    .input-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 32px;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .input-card:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow-s);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .input-inner {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color var(--transition), background var(--transition);
+    }
+
+    .input-inner:focus-within {
+      border-color: var(--accent-dim);
+      background: var(--bg-overlay);
+    }
+
+    .input-prefix {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      padding: 0 10px 0 14px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      pointer-events: none;
+    }
+
+    .input-inner input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 12px 14px 12px 0;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      outline: none;
+      min-width: 0;
+    }
+
+    .input-inner input::placeholder { color: var(--text-muted); }
+
+    .btn-fetch {
+      padding: 0 22px;
+      background: var(--accent);
+      color: #0d0d0f;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font-head);
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+      flex-shrink: 0;
+    }
+
+    .btn-fetch:hover {
+      background: #ffc233;
+      box-shadow: 0 4px 20px var(--accent-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-fetch:active { transform: translateY(0); }
+
+    .btn-fetch:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* ─── Buttons ─────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border-mid);
+      background: var(--bg-raised);
+      color: var(--text-secondary);
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      border-color: var(--border-mid);
+      color: var(--text-primary);
+      background: var(--bg-overlay);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0d0d0f;
+      border-color: transparent;
+      font-weight: 700;
+    }
+
+    .btn-primary:hover {
+      background: #ffc233;
+      box-shadow: 0 4px 16px var(--accent-glow);
+      color: #0d0d0f;
+    }
+
+    .btn-danger {
+      color: #ff6b6b;
+      border-color: rgba(255, 107, 107, 0.2);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger);
+      border-color: rgba(255, 107, 107, 0.4);
+      color: #ff5252;
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.75rem;
+    }
+
+    /* ─── Status bar ─────────────────────────────────────────── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      min-height: 24px;
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--border-mid);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot-ok    { background: #3fb950; }
+    .dot-warn  { background: var(--accent); }
+    .dot-error { background: #ff6b6b; }
+
+    /* ─── Section header ─────────────────────────────────────── */
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .section-title {
+      font-family: var(--font-head);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title .count-badge {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 500;
+      background: var(--accent-glow);
+      color: var(--accent);
+      border: 1px solid rgba(240,165,0,0.2);
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .section-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ─── Thread card ────────────────────────────────────────── */
+    .thread-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      overflow: hidden;
+      transition: border-color var(--transition);
+    }
+
+    .thread-card:hover { border-color: var(--border-mid); }
+
+    .thread-header {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .thread-title {
+      font-family: var(--font-head);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .thread-title a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .thread-title a:hover { color: var(--accent); }
+
+    .thread-meta {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .meta-item { display: flex; align-items: center; gap: 4px; }
+    .meta-item .icon { font-size: 12px; }
+
+    .meta-score { color: var(--hn-orange); }
+    .meta-new   { color: var(--accent); font-weight: 500; }
+
+    /* ─── Watch bar ──────────────────────────────────────────── */
+    .watch-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      flex-wrap: wrap;
+    }
+
+    .watch-bar-left { display: flex; align-items: center; gap: 10px; flex: 1; flex-wrap: wrap; }
+    .watch-bar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    .interval-select {
+      background: var(--bg-raised);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 5px 10px;
+      cursor: pointer;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+
+    .interval-select:focus { border-color: var(--accent); }
+
+    .watch-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .watch-active-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      background: #3fb950;
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* ─── Comment tree ───────────────────────────────────────── */
+    .comments-section { padding: 0 20px 20px; }
+
+    .comment-tree { margin-top: 4px; }
+
+    .comment {
+      position: relative;
+      margin-top: 12px;
+    }
+
+    .comment-inner {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      transition: border-color var(--transition);
+    }
+
+    .comment.is-new > .comment-inner {
+      background: var(--new-bg);
+      border-color: var(--new-border);
+    }
+
+    .comment-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .comment-author {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--accent);
+    }
+
+    .comment-time {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .new-badge {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 500;
+      background: var(--accent-glow);
+      color: var(--accent);
+      border: 1px solid rgba(240,165,0,0.25);
+      padding: 1px 7px;
+      border-radius: 999px;
+      letter-spacing: 0.04em;
+    }
+
+    .comment-body {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      word-break: break-word;
+    }
+
+    .comment-body p { margin-bottom: 8px; }
+    .comment-body p:last-child { margin-bottom: 0; }
+    .comment-body a { color: var(--accent); text-decoration: none; }
+    .comment-body a:hover { text-decoration: underline; }
+    .comment-body pre {
+      background: var(--bg-overlay);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      margin: 8px 0;
+    }
+    .comment-body code {
+      font-family: var(--font-mono);
+      font-size: 0.82em;
+      background: var(--bg-overlay);
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    .comment-body pre code { background: none; padding: 0; }
+
+    .comment-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .toggle-kids {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: color var(--transition);
+    }
+
+    .toggle-kids:hover { color: var(--text-secondary); }
+
+    .comment-kids {
+      margin-left: 20px;
+      border-left: 2px solid var(--border);
+      padding-left: 14px;
+    }
+
+    .comment-kids.collapsed { display: none; }
+
+    /* ─── Watched list ───────────────────────────────────────── */
+    .watched-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      transition: border-color var(--transition), transform var(--transition);
+      cursor: pointer;
+    }
+
+    .watched-card:hover {
+      border-color: var(--border-mid);
+      transform: translateY(-1px);
+    }
+
+    .watched-card.has-new { border-color: var(--new-border); }
+
+    .watched-info { flex: 1; min-width: 0; }
+
+    .watched-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+
+    .watched-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+
+    .watched-new-count {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: var(--accent);
+      color: #0d0d0f;
+      padding: 2px 9px;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+
+    .watched-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    /* ─── Empty state ────────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-muted);
+    }
+
+    .empty-icon {
+      font-size: 40px;
+      margin-bottom: 14px;
+      display: block;
+      opacity: 0.5;
+    }
+
+    .empty-title {
+      font-family: var(--font-head);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .empty-sub {
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    /* ─── Notification strip ─────────────────────────────────── */
+    .notif-strip {
+      background: var(--accent-glow-s);
+      border: 1px solid rgba(240,165,0,0.15);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .notif-strip button {
+      background: var(--accent);
+      color: #0d0d0f;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-left: auto;
+      white-space: nowrap;
+      transition: background var(--transition);
+    }
+
+    .notif-strip button:hover { background: #ffc233; }
+
+    /* ─── Divider ─────────────────────────────────────────────── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 36px 0;
+    }
+
+    /* ─── Toast ───────────────────────────────────────────────── */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 9999;
+    }
+
+    .toast {
+      background: var(--bg-overlay);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-sm);
+      padding: 11px 16px;
+      font-size: 0.82rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      animation: slide-up 0.25s ease;
+      min-width: 220px;
+      max-width: 340px;
+    }
+
+    @keyframes slide-up {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .toast.fade-out {
+      animation: fade-out 0.3s ease forwards;
+    }
+
+    @keyframes fade-out {
+      to { opacity: 0; transform: translateY(6px); }
+    }
+
+    /* ─── Footer ──────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    footer a { color: var(--text-muted); text-decoration: none; }
+    footer a:hover { color: var(--accent); }
+
+    /* ─── Loading shimmer ─────────────────────────────────────── */
+    .shimmer {
+      background: linear-gradient(90deg, var(--bg-raised) 25%, var(--bg-overlay) 50%, var(--bg-raised) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: var(--radius-sm);
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .skeleton-line {
+      height: 14px;
+      margin-bottom: 8px;
+    }
+
+    .skeleton-line.short { width: 40%; }
+    .skeleton-line.med   { width: 65%; }
+    .skeleton-line.full  { width: 100%; }
+
+    /* ─── Responsive ──────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .header-inner { padding: 0 16px; }
+      .main-content { padding: 0 16px 60px; }
+      .input-row { flex-direction: column; }
+      .btn-fetch { padding: 12px 20px; justify-content: center; }
+      .watch-bar { padding: 12px 16px; }
+      .thread-header { padding: 14px 16px 12px; }
+      .comments-section { padding: 0 16px 16px; }
+      .comment-kids { margin-left: 12px; padding-left: 10px; }
+      .badge-mono { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <!-- Header -->
+  <header>
+    <div class="header-inner">
+      <a class="logo" href="#">
+        <div class="logo-icon">Y</div>
+        <span class="logo-text">HN <span>Watch</span></span>
+      </a>
+      <div class="header-actions">
+        <span class="badge-mono">v1.0</span>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <span class="icon-sun">☀️</span>
+          <span class="icon-moon">🌙</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-content">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-eyebrow">// hacker news thread monitor</div>
+      <h1 class="hero-title">Watch <span class="hn">HN</span> Threads,<br>Never Miss a Reply</h1>
+      <p class="hero-sub">Paste any Hacker News thread URL or item ID to load comments. Watch threads and get notified when new ones appear.</p>
+    </div>
+
+    <!-- Notification permission strip -->
+    <div class="notif-strip" id="notifStrip" style="display:none">
+      <span>🔔</span>
+      <span>Enable browser notifications to get alerts when new comments appear.</span>
+      <button onclick="requestNotifPermission()">Enable</button>
+    </div>
+
+    <!-- Input -->
+    <div class="input-card">
+      <div class="input-row">
+        <div class="input-inner">
+          <span class="input-prefix">HN URL / ID</span>
+          <input type="text" id="hnInput" placeholder="https://news.ycombinator.com/item?id=… or 12345678" autocomplete="off" spellcheck="false" />
+        </div>
+        <button class="btn-fetch" id="fetchBtn" onclick="loadThread()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v6M7 13v-1M1 7h6M13 7h-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="7" cy="7" r="3" stroke="currentColor" stroke-width="1.8"/></svg>
+          Load Thread
+        </button>
+      </div>
+      <div class="status-bar" id="statusBar"></div>
+    </div>
+
+    <!-- Watched threads list -->
+    <div id="watchedSection">
+      <div class="section-head">
+        <div class="section-title">
+          Watched Threads
+          <span class="count-badge" id="watchedCount">0</span>
+        </div>
+        <div class="section-actions">
+          <button class="btn btn-sm" onclick="refreshAllWatched()" title="Refresh all">↻ Refresh All</button>
+          <button class="btn btn-sm btn-danger" onclick="clearAllWatched()" title="Clear all">✕ Clear All</button>
+        </div>
+      </div>
+      <div id="watchedList"></div>
+    </div>
+
+    <hr class="divider" id="mainDivider" style="display:none" />
+
+    <!-- Current thread -->
+    <div id="threadSection" style="display:none">
+      <div id="threadCard"></div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    Data from <a href="https://github.com/HackerNews/API" target="_blank" rel="noopener">Hacker News Firebase API</a> · Runs entirely in your browser · <a href="index.html">← MicroTools</a>
+  </footer>
+
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script>
+'use strict';
+
+/* ─── Constants ─────────────────────────────────────────────── */
+const API = 'https://hacker-news.firebaseio.com/v0';
+const LS_WATCHED = 'hn_watch_watched';
+const LS_READ    = 'hn_watch_read';
+
+/* ─── State ──────────────────────────────────────────────────── */
+let currentThread = null;
+let watchTimers   = {};
+
+/* ─── Theme ──────────────────────────────────────────────────── */
+(function initTheme() {
+  const saved = localStorage.getItem('hn_watch_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+})();
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('hn_watch_theme', next);
+});
+
+/* ─── Notification permission ────────────────────────────────── */
+function initNotifStrip() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    document.getElementById('notifStrip').style.display = 'flex';
+  }
+}
+
+function requestNotifPermission() {
+  if (!('Notification' in window)) return;
+  Notification.requestPermission().then(p => {
+    if (p === 'granted') {
+      document.getElementById('notifStrip').style.display = 'none';
+      toast('Notifications enabled!', '🔔');
+    }
+  });
+}
+
+function sendNotification(title, body) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    new Notification(title, { body, icon: 'https://news.ycombinator.com/favicon.ico' });
+  } catch {}
+}
+
+/* ─── HN API ─────────────────────────────────────────────────── */
+async function fetchItem(id) {
+  const r = await fetch(`${API}/item/${id}.json`);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+function extractItemId(input) {
+  input = input.trim();
+  // pure number
+  if (/^\d+$/.test(input)) return input;
+  // URL with id=
+  const m = input.match(/[?&]id=(\d+)/);
+  if (m) return m[1];
+  return null;
+}
+
+async function fetchThreadFull(id, onProgress) {
+  const root = await fetchItem(id);
+  if (!root) throw new Error('Item not found');
+
+  let fetched = 0;
+  const total = (root.kids || []).length;
+
+  async function fetchComments(ids, depth = 0) {
+    if (!ids || ids.length === 0) return [];
+    const items = await Promise.all(ids.map(id => fetchItem(id).catch(() => null)));
+    const results = [];
+    for (const item of items) {
+      if (!item || item.deleted || item.dead) continue;
+      fetched++;
+      if (onProgress && depth === 0) onProgress(fetched, total);
+      const kids = item.kids ? await fetchComments(item.kids, depth + 1) : [];
+      results.push({ ...item, children: kids });
+    }
+    return results;
+  }
+
+  const comments = await fetchComments(root.kids || []);
+  return { ...root, comments };
+}
+
+/* ─── LocalStorage helpers ───────────────────────────────────── */
+function getWatched() {
+  try { return JSON.parse(localStorage.getItem(LS_WATCHED) || '{}'); } catch { return {}; }
+}
+
+function setWatched(data) {
+  localStorage.setItem(LS_WATCHED, JSON.stringify(data));
+}
+
+function getReadSet(itemId) {
+  try {
+    const all = JSON.parse(localStorage.getItem(LS_READ) || '{}');
+    return new Set(all[itemId] || []);
+  } catch { return new Set(); }
+}
+
+function saveReadSet(itemId, set) {
+  try {
+    const all = JSON.parse(localStorage.getItem(LS_READ) || '{}');
+    all[itemId] = [...set];
+    // cap at 500 items to prevent localStorage bloat
+    if (all[itemId].length > 500) all[itemId] = all[itemId].slice(-500);
+    localStorage.setItem(LS_READ, JSON.stringify(all));
+  } catch {}
+}
+
+function collectAllIds(comments) {
+  const ids = [];
+  function walk(list) {
+    for (const c of list) {
+      ids.push(c.id);
+      if (c.children) walk(c.children);
+    }
+  }
+  walk(comments);
+  return ids;
+}
+
+/* ─── Time formatting ────────────────────────────────────────── */
+function timeAgo(unix) {
+  const secs = Math.floor(Date.now() / 1000) - unix;
+  if (secs < 60)  return `${secs}s ago`;
+  if (secs < 3600) return `${Math.floor(secs / 60)}m ago`;
+  if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
+  return `${Math.floor(secs / 86400)}d ago`;
+}
+
+function fmtDate(unix) {
+  return new Date(unix * 1000).toLocaleString();
+}
+
+/* ─── Status bar ─────────────────────────────────────────────── */
+function setStatus(html, type = '') {
+  const bar = document.getElementById('statusBar');
+  if (!html) { bar.innerHTML = ''; return; }
+  const dotClass = type === 'ok' ? 'dot-ok' : type === 'error' ? 'dot-error' : type === 'loading' ? '' : 'dot-warn';
+  const indicator = type === 'loading'
+    ? `<div class="spinner"></div>`
+    : dotClass ? `<div class="status-dot ${dotClass}"></div>` : '';
+  bar.innerHTML = `${indicator}<span>${html}</span>`;
+}
+
+/* ─── Toast ──────────────────────────────────────────────────── */
+function toast(msg, icon = 'ℹ️') {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => {
+    el.classList.add('fade-out');
+    setTimeout(() => el.remove(), 350);
+  }, 3000);
+}
+
+/* ─── Render comment ─────────────────────────────────────────── */
+function renderComment(comment, readSet, depth = 0) {
+  const isNew = !readSet.has(comment.id);
+  const hasKids = comment.children && comment.children.length > 0;
+  const newCount = hasKids ? countNew(comment.children, readSet) : 0;
+
+  const el = document.createElement('div');
+  el.className = `comment${isNew ? ' is-new' : ''}`;
+  el.dataset.id = comment.id;
+
+  const kidsId = `kids-${comment.id}`;
+
+  el.innerHTML = `
+    <div class="comment-inner">
+      <div class="comment-head">
+        <span class="comment-author">${esc(comment.by || 'anon')}</span>
+        <span class="comment-time" title="${fmtDate(comment.time)}">${timeAgo(comment.time)}</span>
+        ${isNew ? '<span class="new-badge">NEW</span>' : ''}
+      </div>
+      <div class="comment-body">${comment.text || '<em style="opacity:0.5">[no text]</em>'}</div>
+      ${hasKids ? `
+      <div class="comment-actions">
+        <button class="toggle-kids" onclick="toggleKids('${kidsId}', this)">
+          <span class="toggle-icon">▾</span>
+          ${comment.children.length} repl${comment.children.length === 1 ? 'y' : 'ies'}${newCount > 0 ? ` <span style="color:var(--accent)">(${newCount} new)</span>` : ''}
+        </button>
+      </div>` : ''}
+    </div>
+    ${hasKids ? `<div class="comment-kids" id="${kidsId}"></div>` : ''}
+  `;
+
+  if (hasKids) {
+    const kidsEl = el.querySelector(`#${kidsId}`);
+    for (const child of comment.children) {
+      kidsEl.appendChild(renderComment(child, readSet, depth + 1));
+    }
+  }
+
+  return el;
+}
+
+function countNew(comments, readSet) {
+  let n = 0;
+  function walk(list) {
+    for (const c of list) {
+      if (!readSet.has(c.id)) n++;
+      if (c.children) walk(c.children);
+    }
+  }
+  walk(comments);
+  return n;
+}
+
+function toggleKids(id, btn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const collapsed = el.classList.toggle('collapsed');
+  btn.querySelector('.toggle-icon').textContent = collapsed ? '▸' : '▾';
+}
+
+function esc(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ─── Render thread ──────────────────────────────────────────── */
+function renderThread(thread, readSet) {
+  const watched = getWatched();
+  const isWatched = !!watched[thread.id];
+  const totalComments = collectAllIds(thread.comments || []).length;
+  const newComments   = countNew(thread.comments || [], readSet);
+
+  const container = document.getElementById('threadCard');
+  container.innerHTML = '';
+
+  const card = document.createElement('div');
+  card.className = 'thread-card';
+
+  const url = thread.url || `https://news.ycombinator.com/item?id=${thread.id}`;
+  const hnUrl = `https://news.ycombinator.com/item?id=${thread.id}`;
+
+  card.innerHTML = `
+    <div class="thread-header">
+      <div class="thread-title">
+        <a href="${esc(url)}" target="_blank" rel="noopener">${esc(thread.title || 'Ask HN / Show HN')}</a>
+      </div>
+      <div class="thread-meta">
+        <span class="meta-item meta-score"><span class="icon">▲</span>${thread.score || 0} pts</span>
+        <span class="meta-item"><span class="icon">👤</span>${esc(thread.by || '')}</span>
+        <span class="meta-item"><span class="icon">🕐</span>${timeAgo(thread.time)}</span>
+        <span class="meta-item"><span class="icon">💬</span>${totalComments} comments</span>
+        ${newComments > 0 ? `<span class="meta-item meta-new">✦ ${newComments} new</span>` : ''}
+        <a class="meta-item" href="${esc(hnUrl)}" target="_blank" rel="noopener" style="color:var(--hn-orange);text-decoration:none">↗ HN</a>
+      </div>
+    </div>
+    <div class="watch-bar">
+      <div class="watch-bar-left">
+        <button class="btn ${isWatched ? 'btn-primary' : ''}" id="watchBtn" onclick="toggleWatch(${thread.id})">
+          ${isWatched ? '● Watching' : '+ Watch Thread'}
+        </button>
+        ${isWatched ? `
+        <span class="watch-label">Auto-refresh:</span>
+        <select class="interval-select" id="intervalSelect" onchange="setWatchInterval(${thread.id}, this.value)">
+          <option value="0">Manual</option>
+          <option value="60">1 min</option>
+          <option value="300">5 min</option>
+          <option value="900">15 min</option>
+        </select>
+        ${watchTimers[thread.id] ? `<span class="watch-active-dot"></span><span class="watch-label">auto-refreshing</span>` : ''}
+        ` : ''}
+      </div>
+      <div class="watch-bar-right">
+        ${newComments > 0 ? `<button class="btn btn-sm" onclick="markAllRead(${thread.id})">✓ Mark all read</button>` : ''}
+        <button class="btn btn-sm" onclick="refreshCurrentThread()">↻ Refresh</button>
+      </div>
+    </div>
+  `;
+
+  container.appendChild(card);
+
+  // restore interval select if watching
+  if (isWatched && watched[thread.id].interval) {
+    const sel = card.querySelector('#intervalSelect');
+    if (sel) sel.value = watched[thread.id].interval;
+  }
+
+  // comments
+  const section = document.createElement('div');
+  section.className = 'comments-section';
+
+  if (!thread.comments || thread.comments.length === 0) {
+    section.innerHTML = `<div class="empty-state"><span class="empty-icon">💬</span><div class="empty-title">No comments yet</div><p class="empty-sub">Be the first to comment on HN!</p></div>`;
+  } else {
+    const head = document.createElement('div');
+    head.className = 'section-head';
+    head.style.marginTop = '8px';
+    head.innerHTML = `
+      <div class="section-title">
+        Comments
+        <span class="count-badge">${totalComments}</span>
+        ${newComments > 0 ? `<span class="count-badge" style="background:rgba(240,165,0,0.15);color:var(--accent);border-color:rgba(240,165,0,0.3)">${newComments} new</span>` : ''}
+      </div>
+    `;
+    section.appendChild(head);
+
+    const tree = document.createElement('div');
+    tree.className = 'comment-tree';
+    for (const comment of thread.comments) {
+      tree.appendChild(renderComment(comment, readSet));
+    }
+    section.appendChild(tree);
+  }
+
+  card.appendChild(section);
+}
+
+/* ─── Mark all read ──────────────────────────────────────────── */
+function markAllRead(itemId) {
+  if (!currentThread || currentThread.id !== itemId) return;
+  const ids = collectAllIds(currentThread.comments || []);
+  const set = getReadSet(itemId);
+  for (const id of ids) set.add(id);
+  saveReadSet(itemId, set);
+  renderThread(currentThread, set);
+  // also update watched card
+  renderWatchedList();
+  toast('All comments marked as read', '✓');
+}
+
+/* ─── Load thread ────────────────────────────────────────────── */
+async function loadThread(idOverride) {
+  const input = idOverride || document.getElementById('hnInput').value;
+  const id = extractItemId(String(input));
+
+  if (!id) {
+    setStatus('Invalid URL or ID. Paste a HN thread URL or numeric item ID.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('fetchBtn');
+  btn.disabled = true;
+  setStatus('Fetching thread…', 'loading');
+
+  document.getElementById('threadSection').style.display = 'none';
+  document.getElementById('mainDivider').style.display = 'none';
+
+  try {
+    const thread = await fetchThreadFull(id, (done, total) => {
+      setStatus(`Loading comments… ${done}/${total || '?'}`, 'loading');
+    });
+
+    if (!thread.title) {
+      throw new Error('This item does not appear to be a thread (story).');
+    }
+
+    currentThread = thread;
+
+    // update watched entry if watching
+    const watched = getWatched();
+    if (watched[thread.id]) {
+      const readSet = getReadSet(thread.id);
+      const allIds  = collectAllIds(thread.comments || []);
+      const newCount = allIds.filter(i => !readSet.has(i)).length;
+      watched[thread.id] = {
+        ...watched[thread.id],
+        title: thread.title,
+        score: thread.score,
+        commentCount: allIds.length,
+        newCount,
+        lastChecked: Date.now(),
+      };
+      setWatched(watched);
+      renderWatchedList();
+    }
+
+    const readSet = getReadSet(thread.id);
+
+    document.getElementById('threadSection').style.display = 'block';
+    document.getElementById('mainDivider').style.display = 'block';
+
+    renderThread(thread, readSet);
+    setStatus(`Loaded "${thread.title}" — ${(thread.kids || []).length} top-level comments`, 'ok');
+
+    // scroll to thread
+    document.getElementById('threadSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  } catch (err) {
+    setStatus(`Error: ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* ─── Refresh current thread ─────────────────────────────────── */
+async function refreshCurrentThread() {
+  if (!currentThread) return;
+  document.getElementById('hnInput').value = String(currentThread.id);
+  await loadThread(currentThread.id);
+}
+
+/* ─── Watch / unwatch ────────────────────────────────────────── */
+function toggleWatch(itemId) {
+  if (!currentThread || currentThread.id !== itemId) return;
+  const watched = getWatched();
+
+  if (watched[itemId]) {
+    // unwatch
+    delete watched[itemId];
+    clearTimer(itemId);
+    setWatched(watched);
+    toast('Removed from watch list', '✕');
+  } else {
+    // watch
+    const readSet = getReadSet(itemId);
+    const allIds  = collectAllIds(currentThread.comments || []);
+    // mark existing as read immediately so we track future new
+    for (const id of allIds) readSet.add(id);
+    saveReadSet(itemId, readSet);
+
+    watched[itemId] = {
+      id: itemId,
+      title: currentThread.title,
+      score: currentThread.score,
+      commentCount: allIds.length,
+      newCount: 0,
+      lastChecked: Date.now(),
+      interval: 0,
+    };
+    setWatched(watched);
+    toast('Thread added to watch list!', '👁');
+  }
+
+  renderWatchedList();
+  // re-render thread card to reflect watch state
+  const readSet = getReadSet(itemId);
+  renderThread(currentThread, readSet);
+}
+
+/* ─── Interval control ───────────────────────────────────────── */
+function setWatchInterval(itemId, seconds) {
+  const secs = parseInt(seconds, 10);
+  const watched = getWatched();
+  if (!watched[itemId]) return;
+  watched[itemId].interval = secs;
+  setWatched(watched);
+
+  clearTimer(itemId);
+  if (secs > 0) {
+    startTimer(itemId, secs);
+    toast(`Auto-refresh every ${secs < 60 ? secs + 's' : secs / 60 + ' min'}`, '↻');
+  } else {
+    // re-render to remove active dot
+    if (currentThread && currentThread.id === itemId) {
+      renderThread(currentThread, getReadSet(itemId));
+    }
+  }
+}
+
+function startTimer(itemId, secs) {
+  watchTimers[itemId] = setInterval(async () => {
+    await silentRefresh(itemId);
+  }, secs * 1000);
+  // re-render to show active dot
+  if (currentThread && currentThread.id === itemId) {
+    renderThread(currentThread, getReadSet(itemId));
+  }
+}
+
+function clearTimer(itemId) {
+  if (watchTimers[itemId]) {
+    clearInterval(watchTimers[itemId]);
+    delete watchTimers[itemId];
+  }
+}
+
+async function silentRefresh(itemId) {
+  try {
+    const thread = await fetchThreadFull(itemId);
+    const watched = getWatched();
+    if (!watched[itemId]) { clearTimer(itemId); return; }
+
+    const readSet  = getReadSet(itemId);
+    const allIds   = collectAllIds(thread.comments || []);
+    const newCount = allIds.filter(i => !readSet.has(i)).length;
+    const prevNew  = watched[itemId].newCount || 0;
+
+    watched[itemId] = {
+      ...watched[itemId],
+      title: thread.title,
+      score: thread.score,
+      commentCount: allIds.length,
+      newCount,
+      lastChecked: Date.now(),
+    };
+    setWatched(watched);
+    renderWatchedList();
+
+    if (newCount > prevNew) {
+      toast(`${thread.title}: ${newCount} new comment${newCount !== 1 ? 's' : ''}`, '🔔');
+      sendNotification('HN Watch — New comments!', `${thread.title}: ${newCount} new comment${newCount !== 1 ? 's' : ''}`);
+    }
+
+    // if this is the currently viewed thread, refresh display
+    if (currentThread && currentThread.id === itemId) {
+      currentThread = thread;
+      renderThread(thread, readSet);
+    }
+  } catch {}
+}
+
+/* ─── Refresh all watched ────────────────────────────────────── */
+async function refreshAllWatched() {
+  const watched = getWatched();
+  const ids = Object.keys(watched);
+  if (ids.length === 0) { toast('No watched threads', 'ℹ️'); return; }
+  toast('Refreshing all watched threads…', '↻');
+  await Promise.all(ids.map(id => silentRefresh(Number(id))));
+  toast('All threads refreshed', '✓');
+}
+
+/* ─── Clear all watched ──────────────────────────────────────── */
+function clearAllWatched() {
+  if (!Object.keys(getWatched()).length) return;
+  if (!confirm('Remove all watched threads?')) return;
+  Object.keys(watchTimers).forEach(clearTimer);
+  setWatched({});
+  renderWatchedList();
+  toast('Cleared all watched threads', '✕');
+}
+
+/* ─── Remove one watched ─────────────────────────────────────── */
+function removeWatched(itemId, ev) {
+  ev.stopPropagation();
+  const watched = getWatched();
+  delete watched[itemId];
+  clearTimer(itemId);
+  setWatched(watched);
+  renderWatchedList();
+  toast('Removed from watch list', '✕');
+}
+
+/* ─── Render watched list ────────────────────────────────────── */
+function renderWatchedList() {
+  const watched = getWatched();
+  const ids = Object.keys(watched);
+  const listEl = document.getElementById('watchedList');
+  const countEl = document.getElementById('watchedCount');
+
+  countEl.textContent = ids.length;
+
+  if (ids.length === 0) {
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-icon">👁</span>
+        <div class="empty-title">No watched threads</div>
+        <p class="empty-sub">Load a HN thread and click "Watch Thread" to monitor it for new comments.</p>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = '';
+  // sort by newCount desc, then lastChecked desc
+  const sorted = ids
+    .map(id => watched[id])
+    .sort((a, b) => (b.newCount - a.newCount) || (b.lastChecked - a.lastChecked));
+
+  for (const w of sorted) {
+    const card = document.createElement('div');
+    card.className = `watched-card${w.newCount > 0 ? ' has-new' : ''}`;
+    card.onclick = () => {
+      document.getElementById('hnInput').value = String(w.id);
+      loadThread(w.id);
+    };
+
+    const checkedAgo = w.lastChecked
+      ? timeAgo(Math.floor(w.lastChecked / 1000))
+      : 'never';
+
+    const isAutoRefresh = !!watchTimers[w.id];
+
+    card.innerHTML = `
+      <div class="watched-info">
+        <div class="watched-title">${esc(w.title || String(w.id))}</div>
+        <div class="watched-meta">
+          <span title="Last checked">🕐 ${checkedAgo}</span>
+          <span>💬 ${w.commentCount || 0} comments</span>
+          <span>▲ ${w.score || 0}</span>
+          ${isAutoRefresh ? `<span><span class="watch-active-dot" style="display:inline-block"></span> auto</span>` : ''}
+        </div>
+      </div>
+      ${w.newCount > 0 ? `<div class="watched-new-count">+${w.newCount} new</div>` : ''}
+      <div class="watched-actions">
+        <button class="btn btn-sm btn-danger" onclick="removeWatched(${w.id}, event)" title="Remove">✕</button>
+      </div>
+    `;
+
+    listEl.appendChild(card);
+  }
+}
+
+/* ─── Enter key on input ─────────────────────────────────────── */
+document.getElementById('hnInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') loadThread();
+});
+
+/* ─── Restore watch timers on load ──────────────────────────────*/
+function restoreTimers() {
+  const watched = getWatched();
+  for (const [id, w] of Object.entries(watched)) {
+    if (w.interval && w.interval > 0) {
+      startTimer(Number(id), w.interval);
+    }
+  }
+}
+
+/* ─── Init ───────────────────────────────────────────────────── */
+initNotifStrip();
+renderWatchedList();
+restoreTimers();
+</script>
+</body>
+</html>
