@@ -693,21 +693,19 @@
       align-items: center;
       gap: 7px;
       padding: 7px 14px;
-      border: 1px solid var(--border-mid);
+      border: none;
       border-radius: var(--radius-sm);
       font-size: 0.78rem;
-      font-weight: 500;
-      color: var(--text-secondary);
+      font-weight: 700;
+      color: #0d0d0f;
       text-decoration: none;
-      background: var(--bg-raised);
-      transition: border-color var(--transition), color var(--transition), background var(--transition), box-shadow var(--transition);
+      background: #ffdd00;
+      transition: opacity var(--transition), box-shadow var(--transition);
     }
 
     .btn-coffee:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-glow-s);
-      box-shadow: 0 2px 10px var(--accent-glow-s);
+      opacity: 0.9;
+      box-shadow: 0 2px 12px rgba(255,221,0,0.3);
     }
 
     .footer-right {
@@ -992,7 +990,7 @@
   <footer>
     <div class="footer-inner">
       <div class="footer-left">
-        <a href="#" class="btn-coffee" title="Support this tool">
+        <a href="https://buymeacoffee.com/beelinkfarm" target="_blank" rel="noopener" class="btn-coffee" title="Support this tool">
           &#9749; Buy me a coffee
         </a>
         <span class="footer-note">

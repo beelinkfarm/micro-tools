@@ -660,19 +660,19 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 4px 10px;
-    background: rgba(245,166,35,.1);
-    border: 1px solid rgba(245,166,35,.3);
+    padding: 4px 12px;
+    background: #ffdd00;
+    border: none;
     border-radius: 20px;
     font-size: 11px;
-    font-weight: 500;
-    color: var(--amber);
+    font-weight: 700;
+    color: #0d0d0f;
     text-decoration: none;
-    transition: background var(--transition), border-color var(--transition);
+    transition: opacity var(--transition), box-shadow var(--transition);
   }
   .coffee-link:hover {
-    background: rgba(245,166,35,.18);
-    border-color: rgba(245,166,35,.5);
+    opacity: 0.9;
+    box-shadow: 0 2px 10px rgba(255,221,0,0.3);
   }
 
   .shortcut-hint {
@@ -895,7 +895,7 @@
         </svg>
         Made with AI
       </span>
-      <a href="https://buymeacoffee.com/" target="_blank" class="coffee-link">
+      <a href="https://buymeacoffee.com/beelinkfarm" target="_blank" rel="noopener" class="coffee-link">
         ☕ Buy me a coffee
       </a>
     </div>
