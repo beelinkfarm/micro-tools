@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A browser-based tool that converts CSV files to JSON format instantly without uploading data anywhere.">
+    <title>CSV to JSON Converter | Micro Tools</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-293GLNTDLQ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-293GLNTDLQ');
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0d0d0f;
+            --bg-secondary: #1a1a1f;
+            --accent: #f0a500;
+            --text-primary: #e8e8e8;
+            --border: #2a2a35;
+            --hover-opacity: 0.85;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Floating Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background-color: rgba(13, 13, 15, 0.95);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+        }
+
+        .nav-logo {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .nav-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background-color: var(--accent);
+            color: var(--bg-primary);
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-button:hover {
+            opacity: var(--hover-opacity);
+        }
+
+        /* Main Content */
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 100px 2rem 2rem;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .description {
+            font-size: 1rem;
+            color: #b0b0b8;
+            margin-bottom: 2rem;
+            line-height: 1.8;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            background-color: var(--bg-secondary);
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent);
+            background-color: rgba(240, 165, 0, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--accent);
+            background-color: rgba(240, 165, 0, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-subtext {
+            font-size: 0.85rem;
+            color: #808088;
+        }
+
+        #csvInput {
+            display: none;
+        }
+
+        /* Output Section */
+        .output-section {
+            display: none;
+        }
+
+        .output-section.visible {
+            display: block;
+        }
+
+        .output-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .output-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 0.6rem 1.2rem;
+            background-color: var(--accent);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: opacity 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        button:hover {
+            opacity: var(--hover-opacity);
+        }
+
+        .secondary-button {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .secondary-button:hover {
+            border-color: var(--accent);
+        }
+
+        /* JSON Output */
+        .json-output {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .json-output code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+            white-space: pre;
+        }
+
+        .copy-toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background-color: var(--accent);
+            color: var(--bg-primary);
+            padding: 1rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Support Section */
+        .support-section {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 3rem 0;
+            text-align: center;
+        }
+
+        .support-section h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .support-section p {
+            color: #b0b0b8;
+            margin-bottom: 1.5rem;
+        }
+
+        .support-button {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background-color: var(--accent);
+            color: var(--bg-primary);
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            transition: opacity 0.3s ease;
+        }
+
+        .support-button:hover {
+            opacity: var(--hover-opacity);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #808088;
+            border-top: 1px solid var(--border);
+            margin-top: 3rem;
+        }
+
+        /* Error Message */
+        .error-message {
+            background-color: rgba(255, 67, 67, 0.1);
+            border: 1px solid #ff4343;
+            border-radius: 4px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            color: #ff9999;
+            display: none;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            nav {
+                padding: 0 1rem;
+            }
+
+            .nav-logo {
+                font-size: 1.2rem;
+            }
+
+            .nav-button {
+                padding: 0.5rem 0.9rem;
+                font-size: 0.8rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            main {
+                padding: 80px 1rem 1rem;
+            }
+
+            .upload-area {
+                padding: 2rem 1rem;
+            }
+
+            .output-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .action-buttons {
+                width: 100%;
+            }
+
+            .action-buttons button {
+                flex: 1;
+            }
+
+            .copy-toast {
+                left: 1rem;
+                right: 1rem;
+            }
+        }
+
+        /* Giscus Container */
+        .giscus-container {
+            margin: 3rem 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <a href="#" class="nav-logo">CSV→JSON</a>
+        <a href="https://buymeacoffee.com/beelinkfarm" target="_blank" rel="noopener noreferrer" class="nav-button">☕ Support</a>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <h1>CSV to JSON Converter</h1>
+        <p class="description">Convert your CSV files to JSON format instantly and securely. Your data never leaves your browser — all processing happens locally on your device.</p>
+
+        <!-- Error Message -->
+        <div class="error-message" id="errorMessage"></div>
+
+        <!-- Upload Area -->
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Drag and drop your CSV file here</div>
+            <div class="upload-subtext">or click to browse</div>
+            <input type="file" id="csvInput" accept=".csv" />
+        </div>
+
+        <!-- Output Section -->
+        <div class="output-section" id="outputSection">
+            <div class="output-header">
+                <div class="output-title">JSON Output</div>
+                <div class="action-buttons">
+                    <button onclick="copyToClipboard()" class="secondary-button">📋 Copy</button>
+                    <button onclick="downloadJSON()">⬇️ Download</button>
+                    <button onclick="resetConverter()" class="secondary-button">🔄 Clear</button>
+                </div>
+            </div>
+            <div class="json-output">
+                <code id="jsonOutput"></code>
+            </div>
+        </div>
+
+        <!-- Support Section -->
+        <div class="support-section">
+            <h2>Support This Tool</h2>
+            <p>If you found this tool helpful, please consider supporting the project. Your support helps maintain and improve these free tools.</p>
+            <a href="https://buymeacoffee.com/beelinkfarm" target="_blank" rel="noopener noreferrer" class="support-button">☕ Buy Me a Coffee</a>
+        </div>
+
+        <!-- Giscus Comments -->
+        <div class="giscus-container">
+            <script src="https://giscus.app/client.js"
+                    data-repo="beelinkfarm/micro-tools"
+                    data-repo-id="R_kgDORt_Frg"
+                    data-category="General"
+                    data-category-id="DIC_kwDORt_Frs4C5Dj0"
+                    data-mapping="pathname"
+                    data-strict="0"
+                    data-reactions-enabled="1"
+                    data-emit-metadata="0"
+                    data-input-position="bottom"
+                    data-theme="dark_dimmed"
+                    data-lang="en"
+                    crossorigin="anonymous"
+                    async>
+            </script>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 <a href="https://beelinkfarm.com" style="color: var(--accent); text-decoration: none;">beelinkfarm.com</a> — All tools free to use</p>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div class="copy-toast" id="copyToast" style="display: none;">✓ Copied to clipboard!</div>
+
+    <script>
+        // Elements
+        const uploadArea = document.getElementById('uploadArea');
+        const csvInput = document.getElementById('csvInput');
+        const outputSection = document.getElementById('outputSection');
+        const jsonOutput = document.getElementById('jsonOutput');
+        const copyToast = document.getElementById('copyToast');
+        const errorMessage = document.getElementById('errorMessage');
+
+        let csvData = [];
+        let jsonData = null;
+
+        // Upload area click
+        uploadArea.addEventListener('click', () => {
+            csvInput.click();
+        });
+
+        // File input change
+        csvInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                processCSVFile(file);
+            }
+        });
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === 'text/csv' || file.name.endsWith('.csv')) {
+                processCSVFile(file);
+            } else {
+                showError('Please upload a valid CSV file.');
+                gtag('event', 'csv_converter_error', {
+                    'error_type': 'invalid_file_type'
+                });
+            }
+        });
+
+        // Process CSV file
+        function processCSVFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const csv = e.target.result;
+                    csvToJson(csv);
+                    errorMessage.classList.remove('visible');
+                    gtag('event', 'csv_converted', {
+                        'file_name': file.name
+                    });
+                } catch (err) {
+                    showError('Error parsing CSV: ' + err.message);
+                    gtag('event', 'csv_converter_error', {
+                        'error_type': 'parse_error',
+                        'error_message': err.message
+                    });
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // CSV to JSON conversion
+        function csvToJson(csv) {
+            const lines = csv.trim().split('\n');
+            if (lines.length < 2) {
+                showError('CSV file must contain at least a header row and one data row.');
+                return;
+            }
+
+            const headers = parseCSVLine(lines[0]);
+            const result = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim() === '') continue;
+                
+                const values = parseCSVLine(lines[i]);
+                const obj = {};
+
+                for (let j = 0; j < headers.length; j++) {
+                    obj[headers[j]] = values[j] || '';
+                }
+
+                result.push(obj);
+            }
+
+            jsonData = result;
+            displayJSON(result);
+        }
+
+        // Parse CSV line handling quotes and commas
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let insideQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+
+                if (char === '"') {
+                    if (insideQuotes && nextChar === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        insideQuotes = !insideQuotes;
+                    }
+                } else if (char === ',' && !insideQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+
+            result.push(current.trim());
+            return result;
+        }
+
+        // Display JSON
+        function displayJSON(data) {
+            const formattedJSON = JSON.stringify(data, null, 2);
+            jsonOutput.textContent = formattedJSON;
+            outputSection.classList.add('visible');
+            uploadArea.style.display = 'none';
+        }
+
+        // Copy to clipboard
+        function copyToClipboard() {
+            if (!jsonData) return;
+            
+            const text = JSON.stringify(jsonData, null, 2);
+            navigator.clipboard.writeText(text).then(() => {
+                copyToast.style.display = 'block';
+                gtag('event', 'json_copied_clipboard');
+                setTimeout(() => {
+                    copyToast.style.display = 'none';
+                }, 2000);
+            });
+        }
+
+        // Download JSON
+        function downloadJSON() {
+            if (!jsonData) return;
+
+            const json = JSON.stringify(jsonData, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'converted.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            gtag('event', 'json_downloaded');
+        }
+
+        // Reset converter
+        function resetConverter() {
+            csvInput.value = '';
+            jsonData = null;
+            jsonOutput.textContent = '';
+            outputSection.classList.remove('visible');
+            uploadArea.style.display = 'block';
+            errorMessage.classList.remove('visible');
+            
+            gtag('event', 'converter_reset');
+        }
+
+        // Show error
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('visible');
+        }
+    </script>
+</body>
+</html>
