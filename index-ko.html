@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MicroTools - Free AI-Powered Micro Utilities</title>
+  <title>MicroTools - 무료 AI 기반 마이크로 유틸리티</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -59,10 +59,6 @@
       color: var(--accent);
     }
 
-    @media (max-width: 600px) {
-      .lang-switcher { top: 12px; right: 16px; font-size: 0.78rem; padding: 4px 10px; }
-    }
-
     .badge {
       display: inline-flex;
       align-items: center;
@@ -93,7 +89,7 @@
     .hero p {
       font-size: 1.15rem;
       color: var(--muted);
-      max-width: 480px;
+      max-width: 520px;
       margin: 0 auto;
     }
 
@@ -503,16 +499,17 @@
       .filter-sort-row { flex-direction: column; align-items: flex-start; }
       .sort-wrap { width: 100%; justify-content: flex-end; }
       .hero { padding: 56px 20px 48px; }
+      .lang-switcher { top: 12px; right: 16px; font-size: 0.78rem; padding: 4px 10px; }
     }
   </style>
 </head>
 <body>
 
   <header class="hero">
-    <a class="lang-switcher" href="index-ko.html">🌐 한국어</a>
-    <div class="badge">✦ Free &amp; Open</div>
+    <a class="lang-switcher" href="index.html">🌐 English</a>
+    <div class="badge">✦ 무료 &amp; 오픈</div>
     <h1>MicroTools</h1>
-    <p>Free AI-Powered Micro Utilities — small tools that do one thing well.</p>
+    <p>무료 AI 기반 마이크로 유틸리티 — 하나의 기능을 잘 수행하는 작은 도구들.</p>
   </header>
 
   <!-- Controls -->
@@ -520,26 +517,26 @@
     <!-- Search -->
     <div class="search-wrap">
       <span class="search-icon">🔎</span>
-      <input id="search-input" type="text" placeholder="Search tools..." autocomplete="off" spellcheck="false">
-      <button class="clear-btn" id="clear-btn" aria-label="Clear search">✕</button>
+      <input id="search-input" type="text" placeholder="도구 검색..." autocomplete="off" spellcheck="false">
+      <button class="clear-btn" id="clear-btn" aria-label="검색 지우기">✕</button>
     </div>
 
     <!-- Filter pills + Sort -->
     <div class="filter-sort-row">
       <div class="category-pills" id="category-pills">
-        <button class="pill active" data-cat="all">All</button>
-        <button class="pill" data-cat="data">Data</button>
-        <button class="pill" data-cat="search">Search</button>
-        <button class="pill" data-cat="web">Web</button>
-        <button class="pill" data-cat="developer">Developer</button>
+        <button class="pill active" data-cat="all">전체</button>
+        <button class="pill" data-cat="data">데이터</button>
+        <button class="pill" data-cat="search">검색</button>
+        <button class="pill" data-cat="web">웹</button>
+        <button class="pill" data-cat="developer">개발자</button>
       </div>
       <div class="sort-wrap">
-        <span class="sort-label">Sort:</span>
+        <span class="sort-label">정렬:</span>
         <select id="sort-select">
-          <option value="popular">Popular</option>
-          <option value="newest">Newest</option>
-          <option value="az">A → Z</option>
-          <option value="za">Z → A</option>
+          <option value="popular">인기순</option>
+          <option value="newest">최신순</option>
+          <option value="az">가나다순</option>
+          <option value="za">역순</option>
         </select>
       </div>
     </div>
@@ -559,18 +556,18 @@
          data-href="llm-scraper.html">
       <div class="card-top">
         <div class="card-icon icon-blue">🔍</div>
-        <button class="like-btn" data-id="llm-scraper" aria-label="Like LLM Scraper">
+        <button class="like-btn" data-id="llm-scraper" aria-label="LLM Scraper 좋아요">
           <span class="heart">♡</span>
           <span class="like-count">0</span>
         </button>
       </div>
       <h2>LLM Scraper</h2>
       <div class="card-cats">
-        <span class="cat-tag web">Web</span>
-        <span class="cat-tag developer">Developer</span>
+        <span class="cat-tag web">웹</span>
+        <span class="cat-tag developer">개발자</span>
       </div>
-      <p>Convert any webpage to clean, LLM-ready markdown text. Strip noise, keep signal.</p>
-      <a class="btn" href="llm-scraper.html">Try it</a>
+      <p>웹페이지를 깨끗한 LLM용 마크다운 텍스트로 변환합니다.</p>
+      <a class="btn" href="llm-scraper.html">사용하기</a>
     </div>
 
     <div class="card"
@@ -581,17 +578,17 @@
          data-href="bookmark-organizer.html">
       <div class="card-top">
         <div class="card-icon icon-green">🔖</div>
-        <button class="like-btn" data-id="bookmark-organizer" aria-label="Like Bookmark Organizer">
+        <button class="like-btn" data-id="bookmark-organizer" aria-label="Bookmark Organizer 좋아요">
           <span class="heart">♡</span>
           <span class="like-count">0</span>
         </button>
       </div>
       <h2>Bookmark Organizer</h2>
       <div class="card-cats">
-        <span class="cat-tag web">Web</span>
+        <span class="cat-tag web">웹</span>
       </div>
-      <p>Auto-categorize and analyze your browser bookmarks. Bring order to the chaos.</p>
-      <a class="btn" href="bookmark-organizer.html">Try it</a>
+      <p>브라우저 북마크를 AI로 자동 분류하고 정리합니다.</p>
+      <a class="btn" href="bookmark-organizer.html">사용하기</a>
     </div>
 
     <div class="card"
@@ -602,17 +599,17 @@
          data-href="search-compare.html">
       <div class="card-top">
         <div class="card-icon icon-purple">⚡</div>
-        <button class="like-btn" data-id="multisearch" aria-label="Like MultiSearch">
+        <button class="like-btn" data-id="multisearch" aria-label="MultiSearch 좋아요">
           <span class="heart">♡</span>
           <span class="like-count">0</span>
         </button>
       </div>
       <h2>MultiSearch</h2>
       <div class="card-cats">
-        <span class="cat-tag search">Search</span>
+        <span class="cat-tag search">검색</span>
       </div>
-      <p>Search across 5 engines simultaneously. Compare results, find more.</p>
-      <a class="btn" href="search-compare.html">Try it</a>
+      <p>5개 검색엔진을 동시에 검색하고 결과를 비교합니다.</p>
+      <a class="btn" href="search-compare.html">사용하기</a>
     </div>
 
     <div class="card"
@@ -623,18 +620,18 @@
          data-href="data-viewer.html">
       <div class="card-top">
         <div class="card-icon icon-blue">📊</div>
-        <button class="like-btn" data-id="dataview" aria-label="Like DataView">
+        <button class="like-btn" data-id="dataview" aria-label="DataView 좋아요">
           <span class="heart">♡</span>
           <span class="like-count">0</span>
         </button>
       </div>
       <h2>DataView</h2>
       <div class="card-cats">
-        <span class="cat-tag data">Data</span>
-        <span class="cat-tag developer">Developer</span>
+        <span class="cat-tag data">데이터</span>
+        <span class="cat-tag developer">개발자</span>
       </div>
-      <p>Paste JSON or CSV data, visualize in sortable tables, edit inline, and export.</p>
-      <a class="btn" href="data-viewer.html">Try it</a>
+      <p>JSON 또는 CSV 데이터를 테이블로 시각화하고, 편집하고, 내보냅니다.</p>
+      <a class="btn" href="data-viewer.html">사용하기</a>
     </div>
 
     <div class="card"
@@ -645,18 +642,18 @@
          data-href="url-preview.html">
       <div class="card-top">
         <div class="card-icon icon-green">🔗</div>
-        <button class="like-btn" data-id="cardpreview" aria-label="Like CardPreview">
+        <button class="like-btn" data-id="cardpreview" aria-label="CardPreview 좋아요">
           <span class="heart">♡</span>
           <span class="like-count">0</span>
         </button>
       </div>
       <h2>CardPreview</h2>
       <div class="card-cats">
-        <span class="cat-tag web">Web</span>
-        <span class="cat-tag developer">Developer</span>
+        <span class="cat-tag web">웹</span>
+        <span class="cat-tag developer">개발자</span>
       </div>
-      <p>Generate and preview social media cards. See how your link looks on Twitter, Facebook, Discord.</p>
-      <a class="btn" href="url-preview.html">Try it</a>
+      <p>소셜 미디어 카드를 미리보기합니다. Twitter, Facebook, Discord에서 어떻게 보이는지 확인하세요.</p>
+      <a class="btn" href="url-preview.html">사용하기</a>
     </div>
 
     <div class="card"
@@ -667,18 +664,18 @@
          data-href="hn-monitor.html">
       <div class="card-top">
         <div class="card-icon icon-purple">📡</div>
-        <button class="like-btn" data-id="hn-watch" aria-label="Like HN Watch">
+        <button class="like-btn" data-id="hn-watch" aria-label="HN Watch 좋아요">
           <span class="heart">♡</span>
           <span class="like-count">0</span>
         </button>
       </div>
       <h2>HN Watch</h2>
       <div class="card-cats">
-        <span class="cat-tag web">Web</span>
-        <span class="cat-tag search">Search</span>
+        <span class="cat-tag web">웹</span>
+        <span class="cat-tag search">검색</span>
       </div>
-      <p>Monitor Hacker News threads for new comments. Watch discussions, never miss a reply.</p>
-      <a class="btn" href="hn-monitor.html">Try it</a>
+      <p>해커뉴스 스레드의 새 댓글을 모니터링합니다.</p>
+      <a class="btn" href="hn-monitor.html">사용하기</a>
     </div>
 
   </main>
@@ -687,17 +684,17 @@
   <div class="empty-state" id="empty-state">
     <div class="empty-inner">
       <div class="empty-icon">🔭</div>
-      <p>No tools found. Try a different search or category.</p>
+      <p>도구를 찾을 수 없습니다. 다른 검색어나 카테고리를 시도해보세요.</p>
     </div>
   </div>
 
   <footer>
     <div class="footer-links">
       <a class="coffee-btn" href="https://buymeacoffee.com/beelinkfarm" target="_blank" rel="noopener">☕ Buy Me a Coffee</a>
-      <a class="feedback-btn" href="https://github.com/beelinkfarm/micro-tools/issues/new?title=[Feedback]%20&body=Which%20tool%3A%20%0ADescription%3A%20" target="_blank" rel="noopener">💬 Feedback</a>
+      <a class="feedback-btn" href="https://github.com/beelinkfarm/micro-tools/issues/new?title=[Feedback]%20&body=Which%20tool%3A%20%0ADescription%3A%20" target="_blank" rel="noopener">💬 피드백</a>
     </div>
-    <div class="ai-badge">🤖 Made with AI</div>
-    <span>© 2026 MicroTools · All tools run in your browser</span>
+    <div class="ai-badge">🤖 AI로 제작</div>
+    <span>© 2026 MicroTools · 모든 도구는 브라우저에서 실행됩니다</span>
   </footer>
 
   <script>
@@ -778,10 +775,10 @@
 
       function getSortValue(card) {
         if (currentSort === 'popular') {
-          return -getLikeCount(card.dataset.id); // descending
+          return -getLikeCount(card.dataset.id);
         }
         if (currentSort === 'newest') {
-          return Number(card.dataset.added); // ascending (lower = older... but all same date, use added order)
+          return Number(card.dataset.added);
         }
         if (currentSort === 'az') {
           return (card.dataset.name || '').toLowerCase();
@@ -824,7 +821,6 @@
         // Re-append in sorted order (only visible)
         sorted.forEach(function (card) {
           card.classList.remove('hidden');
-          // Remove and re-append to reorder
           grid.appendChild(card);
         });
 
@@ -838,7 +834,7 @@
         }
 
         // Count bar
-        countBar.textContent = 'Showing ' + visible.length + ' of ' + TOTAL + ' tools';
+        countBar.textContent = TOTAL + '개 중 ' + visible.length + '개 표시';
       }
 
       /* ── Event: Search ── */
@@ -869,11 +865,9 @@
         if (cat === 'all') {
           activeCategories = new Set(['all']);
         } else {
-          // Remove 'all' if it was active
           activeCategories.delete('all');
           if (activeCategories.has(cat)) {
             activeCategories.delete(cat);
-            // If nothing left, fall back to 'all'
             if (activeCategories.size === 0) activeCategories.add('all');
           } else {
             activeCategories.add(cat);
@@ -913,7 +907,6 @@
 
         // Bounce animation
         btn.classList.remove('bounce');
-        // Force reflow to restart animation
         void btn.offsetWidth;
         btn.classList.add('bounce');
 
