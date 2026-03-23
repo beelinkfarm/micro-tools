@@ -1,0 +1,1954 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APITest — Browser-Based API Tester</title>
+<meta name="description" content="Test API endpoints instantly in your browser. No install, no signup, no data collection. Free Postman alternative.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap');
+
+  /* ── Design tokens ── */
+  :root {
+    --bg:        #0d0d0f;
+    --bg-2:      #13131a;
+    --bg-3:      #1a1a24;
+    --bg-4:      #22222e;
+    --bg-5:      #2a2a38;
+    --border:    rgba(255,255,255,0.07);
+    --border-h:  rgba(255,255,255,0.14);
+    --text:      #f0f0f8;
+    --text-2:    #9898b0;
+    --text-3:    #5a5a72;
+    --accent:    #f0a500;
+    --accent-d:  #c48500;
+    --accent-g:  linear-gradient(135deg, #f0a500 0%, #ff6b35 100%);
+    --green:     #00d4aa;
+    --red:       #ff4d6d;
+    --yellow:    #fbbf24;
+    --blue:      #5b9cf6;
+    --purple:    #a78bfa;
+    --shadow:    0 8px 32px rgba(0,0,0,0.5);
+    --shadow-lg: 0 20px 60px rgba(0,0,0,0.7);
+    --radius:    14px;
+    --radius-sm: 8px;
+    --radius-xs: 5px;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --t:         0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  [data-theme="light"] {
+    --bg:        #f5f5fa;
+    --bg-2:      #ffffff;
+    --bg-3:      #eeeeF8;
+    --bg-4:      #e4e4f0;
+    --bg-5:      #d8d8ec;
+    --border:    rgba(0,0,0,0.08);
+    --border-h:  rgba(0,0,0,0.16);
+    --text:      #0f0f1a;
+    --text-2:    #4a4a6a;
+    --text-3:    #9898b8;
+    --shadow:    0 8px 32px rgba(240,165,0,0.08);
+    --shadow-lg: 0 20px 60px rgba(240,165,0,0.12);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+    transition: background var(--t), color var(--t);
+    overflow-x: hidden;
+  }
+
+  /* ── Ambient orbs ── */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.08;
+    pointer-events: none;
+    z-index: 0;
+    animation: drift 18s ease-in-out infinite alternate;
+  }
+  .orb-1 { width: 600px; height: 600px; background: #f0a500; top: -200px; left: -150px; }
+  .orb-2 { width: 500px; height: 500px; background: #ff6b35; bottom: -150px; right: -100px; animation-delay: -9s; }
+  .orb-3 { width: 350px; height: 350px; background: #5b9cf6; top: 50%; left: 60%; animation-delay: -5s; }
+  [data-theme="light"] .orb { opacity: 0.04; }
+
+  @keyframes drift {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(25px, 15px) scale(1.05); }
+  }
+
+  /* ── Floating Nav ── */
+  .micro-nav-back, .micro-nav-home {
+    position: fixed;
+    top: 72px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(20,20,23,0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    text-decoration: none;
+    color: #e0e0e0;
+    cursor: pointer;
+    z-index: 9999;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .micro-nav-back { left: 16px; }
+  .micro-nav-home { right: 16px; }
+  .micro-nav-back:hover, .micro-nav-home:hover {
+    background: rgba(40,40,46,0.95);
+    border-color: rgba(255,255,255,0.2);
+  }
+  [data-theme="light"] .micro-nav-back,
+  [data-theme="light"] .micro-nav-home {
+    background: rgba(240,240,248,0.85);
+    border-color: rgba(0,0,0,0.1);
+    color: #0f0f1a;
+  }
+
+  .micro-float-bar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(20,20,23,0.9);
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 6px 10px;
+    border-radius: 999px;
+    z-index: 9999;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  [data-theme="light"] .micro-float-bar {
+    background: rgba(255,255,255,0.9);
+    border-color: rgba(0,0,0,0.1);
+  }
+  .micro-float-bar a {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+  }
+  .micro-float-bar a:hover { opacity: 0.85; }
+  .micro-float-bmc { background: #ffdd00; color: #0d0d0f; }
+  .micro-float-feedback { background: #58a6ff; color: #fff; }
+
+  @media (max-width: 400px) {
+    .micro-float-bar a { padding: 8px 12px; font-size: 0.78rem; }
+    .micro-nav-back, .micro-nav-home { width: 42px; height: 42px; font-size: 16px; }
+  }
+
+  /* ── Layout ── */
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 20px 140px;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 0 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--text);
+  }
+  .logo-icon {
+    width: 38px;
+    height: 38px;
+    background: var(--accent-g);
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    box-shadow: 0 4px 20px rgba(240,165,0,0.4);
+    flex-shrink: 0;
+  }
+  .logo-text {
+    font-family: var(--font-head);
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+  }
+  .logo-text em {
+    font-style: normal;
+    background: var(--accent-g);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-actions { display: flex; align-items: center; gap: 10px; }
+
+  .btn-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border);
+    background: var(--bg-3);
+    color: var(--text-2);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 17px;
+    transition: all var(--t);
+  }
+  .btn-icon:hover {
+    border-color: var(--border-h);
+    color: var(--text);
+    background: var(--bg-4);
+    transform: translateY(-1px);
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 14px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border);
+    background: var(--bg-3);
+    color: var(--text-2);
+    cursor: pointer;
+    transition: all var(--t);
+    white-space: nowrap;
+  }
+  .btn:hover {
+    background: var(--bg-4);
+    border-color: var(--border-h);
+    color: var(--text);
+    transform: translateY(-1px);
+  }
+  .btn-accent {
+    background: var(--accent-g);
+    border-color: transparent;
+    color: #000;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 10px 28px;
+    box-shadow: 0 3px 16px rgba(240,165,0,0.3);
+  }
+  .btn-accent:hover {
+    box-shadow: 0 6px 24px rgba(240,165,0,0.45);
+    color: #000;
+    border-color: transparent;
+    transform: translateY(-2px);
+  }
+  .btn-accent:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn-sm {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+  .btn-danger {
+    background: rgba(255,77,109,0.1);
+    border-color: rgba(255,77,109,0.25);
+    color: var(--red);
+  }
+  .btn-danger:hover {
+    background: rgba(255,77,109,0.2);
+    border-color: rgba(255,77,109,0.45);
+    color: var(--red);
+  }
+
+  /* ── Main layout: two-pane ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Panel ── */
+  .panel {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color var(--t);
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-3);
+  }
+  .panel-title {
+    font-family: var(--font-head);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-2);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .panel-body { padding: 20px; }
+
+  /* ── Method + URL row ── */
+  .url-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: stretch;
+  }
+  .method-select {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 0 14px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border);
+    background: var(--bg-3);
+    color: var(--text);
+    cursor: pointer;
+    transition: all var(--t);
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    min-width: 100px;
+    text-align: center;
+  }
+  .method-select:focus {
+    border-color: rgba(240,165,0,0.4);
+    box-shadow: 0 0 0 3px rgba(240,165,0,0.07);
+  }
+  .method-select option { background: #1a1a24; }
+  [data-theme="light"] .method-select option { background: #eeeeF8; }
+
+  .url-input {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    padding: 10px 16px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    transition: border-color var(--t), box-shadow var(--t);
+  }
+  .url-input::placeholder { color: var(--text-3); }
+  .url-input:focus {
+    border-color: rgba(240,165,0,0.4);
+    box-shadow: 0 0 0 3px rgba(240,165,0,0.07);
+  }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 16px;
+    background: var(--bg-3);
+    border-radius: var(--radius-xs);
+    padding: 3px;
+  }
+  .tab {
+    flex: 1;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 7px 10px;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: var(--text-3);
+    cursor: pointer;
+    transition: all var(--t);
+    text-align: center;
+    white-space: nowrap;
+  }
+  .tab.active {
+    background: var(--bg-2);
+    color: var(--text);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .tab:hover:not(.active) { color: var(--text-2); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── KV pairs editor ── */
+  .kv-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .kv-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 8px;
+    align-items: center;
+  }
+  .kv-input {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 7px 11px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    transition: border-color var(--t);
+    width: 100%;
+  }
+  .kv-input::placeholder { color: var(--text-3); }
+  .kv-input:focus { border-color: rgba(240,165,0,0.35); }
+
+  .btn-kv-remove {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-3);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    transition: all var(--t);
+  }
+  .btn-kv-remove:hover {
+    border-color: rgba(255,77,109,0.4);
+    color: var(--red);
+    background: rgba(255,77,109,0.08);
+  }
+
+  /* ── Body editor ── */
+  .body-type-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .body-type-btn {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-3);
+    cursor: pointer;
+    transition: all var(--t);
+    letter-spacing: 0.04em;
+  }
+  .body-type-btn.active {
+    background: rgba(240,165,0,0.12);
+    border-color: rgba(240,165,0,0.4);
+    color: var(--accent);
+  }
+
+  .body-textarea {
+    width: 100%;
+    min-height: 160px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.7;
+    padding: 14px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    resize: vertical;
+    outline: none;
+    transition: border-color var(--t);
+    tab-size: 2;
+  }
+  .body-textarea::placeholder { color: var(--text-3); }
+  .body-textarea:focus { border-color: rgba(240,165,0,0.4); }
+
+  /* ── Send row ── */
+  .send-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .send-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ── Loading spinner ── */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(0,0,0,0.3);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+  }
+
+  /* ── Response panel ── */
+  .response-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    gap: 14px;
+    color: var(--text-3);
+  }
+  .response-empty-icon {
+    font-size: 40px;
+    opacity: 0.4;
+  }
+  .response-empty p {
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .response-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .status-badge {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 99px;
+    border: 1px solid;
+  }
+  .status-2xx { color: var(--green); border-color: rgba(0,212,170,0.4); background: rgba(0,212,170,0.08); }
+  .status-3xx { color: var(--yellow); border-color: rgba(251,191,36,0.4); background: rgba(251,191,36,0.08); }
+  .status-4xx, .status-5xx { color: var(--red); border-color: rgba(255,77,109,0.4); background: rgba(255,77,109,0.08); }
+  .status-0 { color: var(--text-3); border-color: var(--border); background: transparent; }
+
+  .meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-3);
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    padding: 3px 10px;
+    border-radius: 99px;
+  }
+  .meta-chip strong { color: var(--text-2); }
+
+  /* ── Collapsible headers ── */
+  .collapsible-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-head);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    cursor: pointer;
+    padding: 10px 0;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    transition: color var(--t);
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+  }
+  .collapsible-toggle:hover { color: var(--text-2); }
+  .collapsible-toggle .chevron {
+    margin-left: auto;
+    transition: transform var(--t);
+    font-size: 10px;
+  }
+  .collapsible-toggle.open .chevron { transform: rotate(180deg); }
+  .collapsible-body {
+    display: none;
+    padding-bottom: 12px;
+  }
+  .collapsible-body.open { display: block; }
+
+  .resp-headers-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .resp-headers-table tr { border-bottom: 1px solid var(--border); }
+  .resp-headers-table tr:last-child { border-bottom: none; }
+  .resp-headers-table td { padding: 6px 8px; vertical-align: top; }
+  .resp-headers-table td:first-child { color: var(--text-3); width: 40%; word-break: break-all; }
+  .resp-headers-table td:last-child { color: var(--text-2); word-break: break-all; }
+
+  /* ── Response body ── */
+  .resp-body-wrap {
+    position: relative;
+    margin-top: 12px;
+  }
+  .resp-body-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  pre.resp-body {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.7;
+    padding: 16px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-2);
+    overflow: auto;
+    max-height: 420px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    tab-size: 2;
+  }
+
+  /* ── JSON syntax colors ── */
+  .json-key    { color: #5b9cf6; }
+  .json-str    { color: #00d4aa; }
+  .json-num    { color: #f0a500; }
+  .json-bool   { color: #a78bfa; }
+  .json-null   { color: #ff4d6d; }
+  .json-punct  { color: var(--text-3); }
+
+  /* ── CORS warning ── */
+  .cors-warning {
+    display: none;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(251,191,36,0.08);
+    border: 1px solid rgba(251,191,36,0.3);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--yellow);
+    line-height: 1.6;
+  }
+  .cors-warning.visible { display: flex; }
+  .cors-warning-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+
+  /* ── Error banner ── */
+  .error-banner {
+    display: none;
+    align-items: flex-start;
+    gap: 10px;
+    background: rgba(255,77,109,0.08);
+    border: 1px solid rgba(255,77,109,0.25);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    color: var(--red);
+    font-size: 13px;
+    font-family: var(--font-mono);
+    line-height: 1.5;
+  }
+  .error-banner.visible { display: flex; }
+
+  /* ── History sidebar ── */
+  .history-section {
+    margin-top: 24px;
+  }
+  .history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: var(--font-head);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .history-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    cursor: pointer;
+    transition: all var(--t);
+    min-width: 0;
+  }
+  .history-item:hover {
+    border-color: var(--border-h);
+    background: var(--bg-3);
+    transform: translateY(-1px);
+  }
+  .history-method {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .history-method.GET    { background: rgba(0,212,170,0.12); color: var(--green); }
+  .history-method.POST   { background: rgba(91,156,246,0.12); color: var(--blue); }
+  .history-method.PUT    { background: rgba(240,165,0,0.12); color: var(--accent); }
+  .history-method.PATCH  { background: rgba(167,139,250,0.12); color: var(--purple); }
+  .history-method.DELETE { background: rgba(255,77,109,0.12); color: var(--red); }
+  .history-method.HEAD   { background: rgba(251,191,36,0.12); color: var(--yellow); }
+  .history-method.OPTIONS { background: rgba(255,255,255,0.07); color: var(--text-3); }
+
+  .history-url {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+  }
+  .history-status {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .history-status.ok  { color: var(--green); }
+  .history-status.err { color: var(--red); }
+  .history-status.warn { color: var(--yellow); }
+  .history-empty {
+    color: var(--text-3);
+    font-size: 13px;
+    text-align: center;
+    padding: 20px;
+  }
+
+  /* ── Samples section ── */
+  .samples-section {
+    margin-top: 24px;
+  }
+  .samples-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .sample-card {
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    cursor: pointer;
+    transition: all var(--t);
+  }
+  .sample-card:hover {
+    border-color: rgba(240,165,0,0.3);
+    background: var(--bg-3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(240,165,0,0.08);
+  }
+  .sample-card-method {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+  .sample-card-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .sample-card-desc {
+    font-size: 11px;
+    color: var(--text-3);
+    line-height: 1.4;
+  }
+
+  /* ── Toast ── */
+  .toast-container {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 99999;
+    pointer-events: none;
+  }
+  .toast {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--bg-4);
+    border: 1px solid var(--border-h);
+    color: var(--text);
+    box-shadow: var(--shadow);
+    animation: slideIn 0.25s ease;
+    max-width: 300px;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .toast.success { border-color: rgba(0,212,170,0.3); }
+  .toast.error   { border-color: rgba(255,77,109,0.3); color: var(--red); }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    text-align: center;
+    color: var(--text-3);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  footer a { color: inherit; text-decoration: none; }
+  footer a:hover { color: var(--text-2); }
+</style>
+</head>
+<body>
+
+<!-- Floating Nav -->
+<button class="micro-nav-back" onclick="history.back()" aria-label="Go back">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+</button>
+<a class="micro-nav-home" href="index.html" aria-label="Home">&#127968;</a>
+<div class="micro-float-bar">
+  <a class="micro-float-bmc" href="https://buymeacoffee.com/beelinkfarm" target="_blank" rel="noopener">&#9749; Buy me a coffee</a>
+  <a class="micro-float-feedback" href="https://github.com/beelinkfarm/micro-tools/issues/new?title=[APITest]%20&labels=api-tester" target="_blank" rel="noopener">&#128221; Issue</a>
+</div>
+
+<!-- Ambient orbs -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">&#9889;</div>
+      <div class="logo-text"><em>APITest</em> &mdash; Browser API Tester</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">&#9788;</button>
+    </div>
+  </header>
+
+  <!-- Main grid -->
+  <div class="main-grid">
+
+    <!-- Left: Request builder -->
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">&#128295; Request</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-sm" id="btn-copy-curl" title="Copy as cURL">&#128203; cURL</button>
+            <button class="btn btn-sm" id="btn-clear-req" title="Clear request">&#10005; Clear</button>
+          </div>
+        </div>
+        <div class="panel-body">
+
+          <!-- Method + URL -->
+          <div class="url-row">
+            <select class="method-select" id="method-select" aria-label="HTTP method">
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="PATCH">PATCH</option>
+              <option value="DELETE">DELETE</option>
+              <option value="HEAD">HEAD</option>
+              <option value="OPTIONS">OPTIONS</option>
+            </select>
+            <input
+              class="url-input"
+              id="url-input"
+              type="url"
+              placeholder="https://api.example.com/endpoint"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </div>
+
+          <!-- Tabs: Params / Headers / Body -->
+          <div class="tabs" role="tablist">
+            <button class="tab active" data-tab="params" role="tab">Params</button>
+            <button class="tab" data-tab="headers" role="tab">Headers</button>
+            <button class="tab" data-tab="body" role="tab">Body</button>
+          </div>
+
+          <!-- Params tab -->
+          <div class="tab-panel active" id="tab-params">
+            <div class="kv-list" id="params-list"></div>
+            <button class="btn btn-sm" id="btn-add-param">&#43; Add Param</button>
+          </div>
+
+          <!-- Headers tab -->
+          <div class="tab-panel" id="tab-headers">
+            <div class="kv-list" id="headers-list"></div>
+            <button class="btn btn-sm" id="btn-add-header">&#43; Add Header</button>
+          </div>
+
+          <!-- Body tab -->
+          <div class="tab-panel" id="tab-body">
+            <div class="body-type-row">
+              <button class="body-type-btn active" data-body-type="json">JSON</button>
+              <button class="body-type-btn" data-body-type="form">Form Data</button>
+              <button class="body-type-btn" data-body-type="raw">Raw Text</button>
+              <button class="body-type-btn" data-body-type="none">None</button>
+            </div>
+            <div id="body-json-wrap">
+              <textarea
+                class="body-textarea"
+                id="body-input"
+                placeholder='{"key": "value"}'
+                spellcheck="false"
+                autocorrect="off"
+              ></textarea>
+              <div style="display:flex;gap:8px;margin-top:8px;">
+                <button class="btn btn-sm" id="btn-format-json">&#10033; Format JSON</button>
+              </div>
+            </div>
+            <div id="body-form-wrap" style="display:none;">
+              <div class="kv-list" id="form-list"></div>
+              <button class="btn btn-sm" id="btn-add-form">&#43; Add Field</button>
+            </div>
+          </div>
+
+          <!-- Send -->
+          <div class="send-row">
+            <button class="btn btn-accent" id="btn-send">
+              <span id="send-label">&#9654; Send</span>
+            </button>
+            <div class="send-actions">
+              <button class="btn btn-sm" id="btn-save-history" title="Save to history manually">&#128190; Save</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Sample requests -->
+      <div class="samples-section">
+        <div class="history-header">
+          <div class="section-title">&#127381; Sample Requests</div>
+        </div>
+        <div class="samples-grid" id="samples-grid"></div>
+      </div>
+
+      <!-- History -->
+      <div class="history-section">
+        <div class="history-header">
+          <div class="section-title">&#128336; History <span id="history-count" style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);font-weight:400;">(0)</span></div>
+          <button class="btn btn-sm btn-danger" id="btn-clear-history">Clear</button>
+        </div>
+        <div class="history-list" id="history-list">
+          <div class="history-empty">No requests yet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Response -->
+    <div>
+      <div class="panel" id="response-panel">
+        <div class="panel-header">
+          <div class="panel-title">&#128204; Response</div>
+          <div style="display:flex;gap:8px;" id="resp-actions" style="display:none;">
+            <button class="btn btn-sm" id="btn-copy-resp" style="display:none;">&#128203; Copy</button>
+            <button class="btn btn-sm" id="btn-download-resp" style="display:none;">&#8659; Download</button>
+          </div>
+        </div>
+        <div class="panel-body" id="response-body-wrap">
+
+          <!-- Empty state -->
+          <div class="response-empty" id="resp-empty">
+            <div class="response-empty-icon">&#9889;</div>
+            <p>Hit <strong>Send</strong> to fire your request.<br>Response will appear here.</p>
+          </div>
+
+          <!-- CORS warning -->
+          <div class="cors-warning" id="cors-warning">
+            <span class="cors-warning-icon">&#9888;</span>
+            <div>
+              <strong>CORS blocked.</strong> The server didn't allow this cross-origin request from your browser.
+              <br>Try: enable CORS on the server, use a proxy, or test with a local API.
+              <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">Learn more &rarr;</a>
+            </div>
+          </div>
+
+          <!-- Error banner -->
+          <div class="error-banner" id="error-banner">
+            <span>&#9888;</span>
+            <span id="error-msg">Network error</span>
+          </div>
+
+          <!-- Response content (hidden until response arrives) -->
+          <div id="resp-content" style="display:none;">
+            <!-- Meta -->
+            <div class="response-meta" id="resp-meta"></div>
+
+            <!-- Response body -->
+            <div class="resp-body-wrap">
+              <div class="resp-body-actions">
+                <button class="btn btn-sm" id="btn-toggle-raw">Raw</button>
+                <button class="btn btn-sm" id="btn-copy-resp-body">&#128203; Copy Body</button>
+                <button class="btn btn-sm" id="btn-download-resp-body">&#8659; Download</button>
+              </div>
+              <pre class="resp-body" id="resp-body-pre"></pre>
+            </div>
+
+            <!-- Collapsible headers -->
+            <button class="collapsible-toggle" id="resp-headers-toggle">
+              <span>Response Headers</span>
+              <span class="chevron">&#9660;</span>
+            </button>
+            <div class="collapsible-body" id="resp-headers-body">
+              <table class="resp-headers-table" id="resp-headers-table"></table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-grid -->
+</div><!-- /app -->
+
+<footer>
+  <span>APITest &mdash; part of <a href="index.html">MicroTools</a> &middot; Runs entirely in your browser &middot; No data collected</span>
+</footer>
+
+<!-- Comments Section -->
+<div id="giscus-comments" style="max-width:800px;margin:40px auto 20px;padding:0 16px 80px;">
+  <h3 style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700;color:var(--text,#f0eff2);margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+    &#128172; Comments &amp; Feedback
+  </h3>
+  <script src="https://giscus.app/client.js"
+    data-repo="beelinkfarm/micro-tools"
+    data-repo-id="R_kgDORt_Frg"
+    data-category="General"
+    data-category-id="DIC_kwDORt_Frs4C5Dj0"
+    data-mapping="specific"
+    data-term="APITest"
+    data-strict="0"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="top"
+    data-theme="dark_dimmed"
+    data-lang="en"
+    crossorigin="anonymous"
+    async>
+  </script>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+/* ────────────────────────────────────────────
+   State
+──────────────────────────────────────────── */
+let state = {
+  method: 'GET',
+  url: '',
+  params: [],     // [{key,val,enabled}]
+  headers: [],    // [{key,val,enabled}]
+  bodyType: 'json',
+  bodyRaw: '',
+  formFields: [], // [{key,val,enabled}]
+  activeTab: 'params',
+  rawView: false,
+};
+
+let lastResponse = null; // {status, statusText, headers, body, time, size}
+let history = JSON.parse(localStorage.getItem('apitest-history') || '[]');
+
+/* ────────────────────────────────────────────
+   Theme
+──────────────────────────────────────────── */
+const html = document.documentElement;
+const themeBtn = document.getElementById('theme-toggle');
+const savedTheme = localStorage.getItem('apitest-theme') || 'dark';
+html.dataset.theme = savedTheme;
+updateThemeIcon();
+
+themeBtn.addEventListener('click', () => {
+  const next = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  html.dataset.theme = next;
+  localStorage.setItem('apitest-theme', next);
+  updateThemeIcon();
+  // Update giscus theme
+  const iframe = document.querySelector('iframe.giscus-frame');
+  if (iframe) {
+    iframe.contentWindow.postMessage(
+      { giscus: { setConfig: { theme: next === 'dark' ? 'dark_dimmed' : 'light' } } },
+      'https://giscus.app'
+    );
+  }
+});
+
+function updateThemeIcon() {
+  themeBtn.textContent = html.dataset.theme === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+}
+
+/* ────────────────────────────────────────────
+   Tabs
+──────────────────────────────────────────── */
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const t = tab.dataset.tab;
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + t).classList.add('active');
+    state.activeTab = t;
+  });
+});
+
+/* ────────────────────────────────────────────
+   Method select
+──────────────────────────────────────────── */
+const methodSelect = document.getElementById('method-select');
+methodSelect.addEventListener('change', () => {
+  state.method = methodSelect.value;
+  // Auto-focus body tab for non-GET methods
+  if (['POST','PUT','PATCH'].includes(state.method)) {
+    activateTab('body');
+  }
+});
+
+function activateTab(name) {
+  document.querySelectorAll('.tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'tab-' + name);
+  });
+  state.activeTab = name;
+}
+
+/* ────────────────────────────────────────────
+   URL input
+──────────────────────────────────────────── */
+const urlInput = document.getElementById('url-input');
+urlInput.addEventListener('input', () => {
+  state.url = urlInput.value;
+});
+
+/* ────────────────────────────────────────────
+   KV helpers
+──────────────────────────────────────────── */
+function buildKVRow(key = '', val = '', containerId, onRemove) {
+  const row = document.createElement('div');
+  row.className = 'kv-row';
+
+  const kInput = document.createElement('input');
+  kInput.className = 'kv-input';
+  kInput.placeholder = 'Key';
+  kInput.value = key;
+  kInput.spellcheck = false;
+
+  const vInput = document.createElement('input');
+  vInput.className = 'kv-input';
+  vInput.placeholder = 'Value';
+  vInput.value = val;
+  vInput.spellcheck = false;
+
+  const rmBtn = document.createElement('button');
+  rmBtn.className = 'btn-kv-remove';
+  rmBtn.innerHTML = '&times;';
+  rmBtn.title = 'Remove';
+  rmBtn.addEventListener('click', () => {
+    row.remove();
+    onRemove && onRemove();
+  });
+
+  row.appendChild(kInput);
+  row.appendChild(vInput);
+  row.appendChild(rmBtn);
+  return { row, kInput, vInput };
+}
+
+function addKVRow(containerId, array, keyPlaceholder, valPlaceholder) {
+  const container = document.getElementById(containerId);
+  const entry = { key: '', val: '' };
+  array.push(entry);
+  const { row, kInput, vInput } = buildKVRow('', '', containerId, null);
+  kInput.placeholder = keyPlaceholder || 'Key';
+  vInput.placeholder = valPlaceholder || 'Value';
+  kInput.addEventListener('input', () => { entry.key = kInput.value; });
+  vInput.addEventListener('input', () => { entry.val = vInput.value; });
+  const rmBtn = row.querySelector('.btn-kv-remove');
+  rmBtn.addEventListener('click', () => {
+    const idx = array.indexOf(entry);
+    if (idx > -1) array.splice(idx, 1);
+  });
+  container.appendChild(row);
+  kInput.focus();
+}
+
+function renderKVList(containerId, array, keyPlaceholder, valPlaceholder) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  array.forEach(entry => {
+    const { row, kInput, vInput } = buildKVRow(entry.key, entry.val, containerId, null);
+    kInput.placeholder = keyPlaceholder || 'Key';
+    vInput.placeholder = valPlaceholder || 'Value';
+    kInput.addEventListener('input', () => { entry.key = kInput.value; });
+    vInput.addEventListener('input', () => { entry.val = vInput.value; });
+    const rmBtn = row.querySelector('.btn-kv-remove');
+    rmBtn.addEventListener('click', () => {
+      const idx = array.indexOf(entry);
+      if (idx > -1) array.splice(idx, 1);
+      row.remove();
+    });
+    container.appendChild(row);
+  });
+}
+
+// Params
+document.getElementById('btn-add-param').addEventListener('click', () => {
+  addKVRow('params-list', state.params, 'param', 'value');
+});
+
+// Headers
+document.getElementById('btn-add-header').addEventListener('click', () => {
+  addKVRow('headers-list', state.headers, 'Content-Type', 'application/json');
+});
+
+// Form fields
+document.getElementById('btn-add-form').addEventListener('click', () => {
+  addKVRow('form-list', state.formFields, 'field', 'value');
+});
+
+/* ────────────────────────────────────────────
+   Body type
+──────────────────────────────────────────── */
+const bodyJsonWrap = document.getElementById('body-json-wrap');
+const bodyFormWrap = document.getElementById('body-form-wrap');
+const bodyInput   = document.getElementById('body-input');
+
+document.querySelectorAll('.body-type-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.body-type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.bodyType = btn.dataset.bodyType;
+
+    const isJson = state.bodyType === 'json';
+    const isRaw  = state.bodyType === 'raw';
+    const isForm = state.bodyType === 'form';
+
+    bodyJsonWrap.style.display = (isJson || isRaw) ? 'block' : 'none';
+    bodyFormWrap.style.display = isForm ? 'block' : 'none';
+    if (isRaw) bodyInput.placeholder = 'Raw request body...';
+    if (isJson) bodyInput.placeholder = '{"key": "value"}';
+  });
+});
+
+document.getElementById('btn-format-json').addEventListener('click', () => {
+  try {
+    const parsed = JSON.parse(bodyInput.value);
+    bodyInput.value = JSON.stringify(parsed, null, 2);
+    state.bodyRaw = bodyInput.value;
+    toast('JSON formatted', 'success');
+  } catch (e) {
+    toast('Invalid JSON: ' + e.message, 'error');
+  }
+});
+
+bodyInput.addEventListener('input', () => {
+  state.bodyRaw = bodyInput.value;
+});
+
+/* ────────────────────────────────────────────
+   Build effective URL with query params
+──────────────────────────────────────────── */
+function buildURL() {
+  let base = state.url.trim();
+  if (!base) return '';
+
+  const activeParams = state.params.filter(p => p.key.trim());
+  if (!activeParams.length) return base;
+
+  try {
+    const url = new URL(base);
+    activeParams.forEach(p => url.searchParams.set(p.key.trim(), p.val));
+    return url.toString();
+  } catch {
+    // Not a valid URL yet; append manually
+    const qs = activeParams.map(p =>
+      encodeURIComponent(p.key.trim()) + '=' + encodeURIComponent(p.val)
+    ).join('&');
+    return base + (base.includes('?') ? '&' : '?') + qs;
+  }
+}
+
+/* ────────────────────────────────────────────
+   Build request headers
+──────────────────────────────────────────── */
+function buildHeaders() {
+  const hdrs = {};
+  state.headers.filter(h => h.key.trim()).forEach(h => {
+    hdrs[h.key.trim()] = h.val;
+  });
+  // Auto content-type
+  if (state.bodyType === 'json' && state.bodyRaw.trim() && !hdrs['Content-Type']) {
+    hdrs['Content-Type'] = 'application/json';
+  }
+  return hdrs;
+}
+
+/* ────────────────────────────────────────────
+   Build request body
+──────────────────────────────────────────── */
+function buildBody() {
+  if (['GET','HEAD','OPTIONS'].includes(state.method)) return undefined;
+  if (state.bodyType === 'none') return undefined;
+  if (state.bodyType === 'form') {
+    const fd = new FormData();
+    state.formFields.filter(f => f.key.trim()).forEach(f => fd.append(f.key.trim(), f.val));
+    return fd;
+  }
+  return state.bodyRaw.trim() || undefined;
+}
+
+/* ────────────────────────────────────────────
+   Send request
+──────────────────────────────────────────── */
+const sendBtn    = document.getElementById('btn-send');
+const sendLabel  = document.getElementById('send-label');
+let abortCtrl    = null;
+
+sendBtn.addEventListener('click', sendRequest);
+
+async function sendRequest() {
+  const url = buildURL();
+  if (!url) {
+    toast('Please enter a URL', 'error');
+    urlInput.focus();
+    return;
+  }
+
+  // Reset UI
+  hideError();
+  hideCORS();
+  hideResponseContent();
+  document.getElementById('resp-empty').style.display = 'none';
+
+  // Loading state
+  sendBtn.disabled = true;
+  sendLabel.innerHTML = '<span class="spinner"></span> Sending&hellip;';
+
+  abortCtrl = new AbortController();
+  const t0 = performance.now();
+
+  try {
+    const res = await fetch(url, {
+      method: state.method,
+      headers: buildHeaders(),
+      body: buildBody(),
+      signal: abortCtrl.signal,
+      // Don't follow redirects silently — let browser handle
+    });
+
+    const t1 = performance.now();
+    const elapsed = Math.round(t1 - t0);
+    const bodyText = await res.text();
+    const size = new TextEncoder().encode(bodyText).length;
+
+    // Collect response headers
+    const respHeaders = {};
+    res.headers.forEach((v, k) => { respHeaders[k] = v; });
+
+    lastResponse = {
+      status: res.status,
+      statusText: res.statusText,
+      headers: respHeaders,
+      body: bodyText,
+      time: elapsed,
+      size,
+      url,
+      method: state.method,
+    };
+
+    renderResponse(lastResponse);
+    saveToHistory(lastResponse);
+
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      toast('Request cancelled', 'error');
+      document.getElementById('resp-empty').style.display = 'flex';
+    } else if (
+      err.message.includes('Failed to fetch') ||
+      err.message.includes('NetworkError') ||
+      err.message.includes('CORS') ||
+      err.message.includes('net::ERR')
+    ) {
+      showCORS();
+      showError('Network error — likely CORS or connection refused.\n' + err.message);
+    } else {
+      showError(err.message);
+    }
+  } finally {
+    sendBtn.disabled = false;
+    sendLabel.innerHTML = '&#9654; Send';
+    abortCtrl = null;
+  }
+}
+
+/* ────────────────────────────────────────────
+   Render response
+──────────────────────────────────────────── */
+function renderResponse(resp) {
+  const content = document.getElementById('resp-content');
+  content.style.display = 'block';
+
+  // Meta chips
+  const meta = document.getElementById('resp-meta');
+  const cat = Math.floor(resp.status / 100);
+  const statusClass = cat === 2 ? 'status-2xx' : cat === 3 ? 'status-3xx' : cat === 4 ? 'status-4xx' : cat === 5 ? 'status-5xx' : 'status-0';
+  meta.innerHTML = `
+    <span class="status-badge ${statusClass}">${resp.status} ${resp.statusText}</span>
+    <span class="meta-chip">&#128336; <strong>${resp.time} ms</strong></span>
+    <span class="meta-chip">&#128190; <strong>${formatSize(resp.size)}</strong></span>
+  `;
+
+  // Body
+  renderBody(resp.body, resp.headers['content-type'] || '');
+
+  // Response headers
+  const table = document.getElementById('resp-headers-table');
+  table.innerHTML = Object.entries(resp.headers).map(([k, v]) =>
+    `<tr><td>${escHtml(k)}</td><td>${escHtml(v)}</td></tr>`
+  ).join('');
+
+  // Show action buttons
+  document.getElementById('btn-copy-resp-body').style.display = 'inline-flex';
+  document.getElementById('btn-download-resp-body').style.display = 'inline-flex';
+}
+
+let rawViewActive = false;
+
+function renderBody(bodyText, contentType) {
+  const pre = document.getElementById('resp-body-pre');
+  const isJSON = contentType.includes('json') || isLikelyJSON(bodyText);
+
+  if (!rawViewActive && isJSON) {
+    try {
+      const parsed = JSON.parse(bodyText);
+      pre.innerHTML = syntaxHighlight(JSON.stringify(parsed, null, 2));
+      return;
+    } catch { /* fall through */ }
+  }
+  pre.textContent = bodyText;
+}
+
+document.getElementById('btn-toggle-raw').addEventListener('click', () => {
+  rawViewActive = !rawViewActive;
+  document.getElementById('btn-toggle-raw').textContent = rawViewActive ? 'Formatted' : 'Raw';
+  if (lastResponse) renderBody(lastResponse.body, lastResponse.headers['content-type'] || '');
+});
+
+function isLikelyJSON(text) {
+  const t = text.trim();
+  return (t.startsWith('{') && t.endsWith('}')) || (t.startsWith('[') && t.endsWith(']'));
+}
+
+function syntaxHighlight(json) {
+  return json
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, match => {
+      let cls = 'json-num';
+      if (/^"/.test(match)) {
+        cls = /:$/.test(match) ? 'json-key' : 'json-str';
+      } else if (/true|false/.test(match)) {
+        cls = 'json-bool';
+      } else if (/null/.test(match)) {
+        cls = 'json-null';
+      }
+      return `<span class="${cls}">${match}</span>`;
+    });
+}
+
+/* ────────────────────────────────────────────
+   Collapsible headers
+──────────────────────────────────────────── */
+const headersToggle = document.getElementById('resp-headers-toggle');
+const headersBody   = document.getElementById('resp-headers-body');
+
+headersToggle.addEventListener('click', () => {
+  const open = headersBody.classList.toggle('open');
+  headersToggle.classList.toggle('open', open);
+});
+
+/* ────────────────────────────────────────────
+   Copy / Download
+──────────────────────────────────────────── */
+document.getElementById('btn-copy-resp-body').addEventListener('click', () => {
+  if (!lastResponse) return;
+  copyText(lastResponse.body);
+});
+
+document.getElementById('btn-download-resp-body').addEventListener('click', () => {
+  if (!lastResponse) return;
+  const ct = lastResponse.headers['content-type'] || '';
+  const ext = ct.includes('json') ? 'json' : ct.includes('xml') ? 'xml' : ct.includes('html') ? 'html' : 'txt';
+  downloadText(lastResponse.body, 'response.' + ext);
+});
+
+document.getElementById('btn-copy-curl').addEventListener('click', () => {
+  const curl = buildCURL();
+  if (!curl) { toast('Enter a URL first', 'error'); return; }
+  copyText(curl);
+  toast('cURL copied!', 'success');
+});
+
+function buildCURL() {
+  const url = buildURL();
+  if (!url) return '';
+  let cmd = `curl -X ${state.method}`;
+  const hdrs = buildHeaders();
+  Object.entries(hdrs).forEach(([k, v]) => {
+    cmd += ` \\\n  -H '${k}: ${v}'`;
+  });
+  const body = buildBody();
+  if (body && typeof body === 'string') {
+    cmd += ` \\\n  -d '${body.replace(/'/g, "\\'")}'`;
+  }
+  cmd += ` \\\n  '${url}'`;
+  return cmd;
+}
+
+document.getElementById('btn-clear-req').addEventListener('click', () => {
+  state.params = [];
+  state.headers = [];
+  state.formFields = [];
+  state.bodyRaw = '';
+  urlInput.value = '';
+  bodyInput.value = '';
+  renderKVList('params-list', state.params, 'param', 'value');
+  renderKVList('headers-list', state.headers, 'Header', 'Value');
+  renderKVList('form-list', state.formFields, 'field', 'value');
+});
+
+/* ────────────────────────────────────────────
+   History
+──────────────────────────────────────────── */
+function saveToHistory(resp) {
+  const entry = {
+    id: Date.now(),
+    method: resp.method,
+    url: resp.url,
+    status: resp.status,
+    time: resp.time,
+    ts: new Date().toISOString(),
+    // Save enough to restore
+    params: JSON.parse(JSON.stringify(state.params)),
+    headers: JSON.parse(JSON.stringify(state.headers)),
+    bodyType: state.bodyType,
+    bodyRaw: state.bodyRaw,
+    formFields: JSON.parse(JSON.stringify(state.formFields)),
+  };
+  history.unshift(entry);
+  if (history.length > 10) history = history.slice(0, 10);
+  localStorage.setItem('apitest-history', JSON.stringify(history));
+  renderHistory();
+}
+
+document.getElementById('btn-save-history').addEventListener('click', () => {
+  saveToHistory({
+    method: state.method,
+    url: buildURL() || state.url,
+    status: lastResponse ? lastResponse.status : 0,
+    time: lastResponse ? lastResponse.time : 0,
+  });
+  toast('Saved to history', 'success');
+});
+
+document.getElementById('btn-clear-history').addEventListener('click', () => {
+  history = [];
+  localStorage.removeItem('apitest-history');
+  renderHistory();
+  toast('History cleared', 'success');
+});
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  const count = document.getElementById('history-count');
+  count.textContent = '(' + history.length + ')';
+  if (!history.length) {
+    list.innerHTML = '<div class="history-empty">No requests yet</div>';
+    return;
+  }
+  list.innerHTML = '';
+  history.forEach(entry => {
+    const item = document.createElement('div');
+    item.className = 'history-item';
+
+    const statusCls = entry.status >= 500 ? 'err' : entry.status >= 400 ? 'err' : entry.status >= 300 ? 'warn' : 'ok';
+    const statusStr = entry.status ? String(entry.status) : '—';
+
+    item.innerHTML = `
+      <span class="history-method ${entry.method}">${entry.method}</span>
+      <span class="history-url" title="${escHtml(entry.url)}">${escHtml(entry.url)}</span>
+      <span class="history-status ${statusCls}">${statusStr}</span>
+    `;
+    item.addEventListener('click', () => loadHistoryEntry(entry));
+    list.appendChild(item);
+  });
+}
+
+function loadHistoryEntry(entry) {
+  state.method = entry.method;
+  state.url = entry.url;
+  state.params = entry.params ? JSON.parse(JSON.stringify(entry.params)) : [];
+  state.headers = entry.headers ? JSON.parse(JSON.stringify(entry.headers)) : [];
+  state.bodyType = entry.bodyType || 'json';
+  state.bodyRaw = entry.bodyRaw || '';
+  state.formFields = entry.formFields ? JSON.parse(JSON.stringify(entry.formFields)) : [];
+
+  methodSelect.value = state.method;
+  urlInput.value = state.url;
+  bodyInput.value = state.bodyRaw;
+
+  renderKVList('params-list', state.params, 'param', 'value');
+  renderKVList('headers-list', state.headers, 'Header', 'Value');
+  renderKVList('form-list', state.formFields, 'field', 'value');
+
+  // Body type
+  document.querySelectorAll('.body-type-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.bodyType === state.bodyType);
+  });
+  bodyJsonWrap.style.display = (state.bodyType === 'json' || state.bodyType === 'raw') ? 'block' : 'none';
+  bodyFormWrap.style.display = state.bodyType === 'form' ? 'block' : 'none';
+
+  toast('Request loaded from history', 'success');
+}
+
+renderHistory();
+
+/* ────────────────────────────────────────────
+   Sample requests
+──────────────────────────────────────────── */
+const SAMPLES = [
+  {
+    name: 'JSONPlaceholder Posts',
+    desc: 'List all posts',
+    method: 'GET',
+    url: 'https://jsonplaceholder.typicode.com/posts',
+    params: [],
+    headers: [],
+    bodyType: 'none',
+    bodyRaw: '',
+    formFields: [],
+  },
+  {
+    name: 'JSONPlaceholder Post',
+    desc: 'Get post by ID',
+    method: 'GET',
+    url: 'https://jsonplaceholder.typicode.com/posts/1',
+    params: [],
+    headers: [],
+    bodyType: 'none',
+    bodyRaw: '',
+    formFields: [],
+  },
+  {
+    name: 'Create Post',
+    desc: 'POST to JSONPlaceholder',
+    method: 'POST',
+    url: 'https://jsonplaceholder.typicode.com/posts',
+    params: [],
+    headers: [{ key: 'Content-Type', val: 'application/json' }],
+    bodyType: 'json',
+    bodyRaw: '{\n  "title": "Hello World",\n  "body": "Lorem ipsum",\n  "userId": 1\n}',
+    formFields: [],
+  },
+  {
+    name: 'httpbin GET',
+    desc: 'Echo request headers',
+    method: 'GET',
+    url: 'https://httpbin.org/get',
+    params: [{ key: 'foo', val: 'bar' }],
+    headers: [],
+    bodyType: 'none',
+    bodyRaw: '',
+    formFields: [],
+  },
+  {
+    name: 'httpbin POST JSON',
+    desc: 'Echo POST body',
+    method: 'POST',
+    url: 'https://httpbin.org/post',
+    params: [],
+    headers: [{ key: 'Content-Type', val: 'application/json' }],
+    bodyType: 'json',
+    bodyRaw: '{\n  "message": "Hello from APITest"\n}',
+    formFields: [],
+  },
+  {
+    name: 'httpbin Status',
+    desc: 'Return specific status code',
+    method: 'GET',
+    url: 'https://httpbin.org/status/404',
+    params: [],
+    headers: [],
+    bodyType: 'none',
+    bodyRaw: '',
+    formFields: [],
+  },
+  {
+    name: 'IP Info',
+    desc: 'Your public IP info',
+    method: 'GET',
+    url: 'https://ipapi.co/json/',
+    params: [],
+    headers: [],
+    bodyType: 'none',
+    bodyRaw: '',
+    formFields: [],
+  },
+  {
+    name: 'Random User',
+    desc: 'Generate random user data',
+    method: 'GET',
+    url: 'https://randomuser.me/api/',
+    params: [{ key: 'results', val: '3' }],
+    headers: [],
+    bodyType: 'none',
+    bodyRaw: '',
+    formFields: [],
+  },
+];
+
+const METHOD_COLORS = {
+  GET: 'var(--green)', POST: 'var(--blue)', PUT: 'var(--accent)',
+  PATCH: 'var(--purple)', DELETE: 'var(--red)', HEAD: 'var(--yellow)', OPTIONS: 'var(--text-3)',
+};
+
+function renderSamples() {
+  const grid = document.getElementById('samples-grid');
+  grid.innerHTML = '';
+  SAMPLES.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'sample-card';
+    card.innerHTML = `
+      <div class="sample-card-method" style="color:${METHOD_COLORS[s.method] || 'var(--text-2)'}">${s.method}</div>
+      <div class="sample-card-name">${escHtml(s.name)}</div>
+      <div class="sample-card-desc">${escHtml(s.desc)}</div>
+    `;
+    card.addEventListener('click', () => loadSample(s));
+    grid.appendChild(card);
+  });
+}
+
+function loadSample(s) {
+  state.method = s.method;
+  state.url = s.url;
+  state.params = JSON.parse(JSON.stringify(s.params));
+  state.headers = JSON.parse(JSON.stringify(s.headers));
+  state.bodyType = s.bodyType;
+  state.bodyRaw = s.bodyRaw;
+  state.formFields = JSON.parse(JSON.stringify(s.formFields));
+
+  methodSelect.value = state.method;
+  urlInput.value = state.url;
+  bodyInput.value = state.bodyRaw;
+
+  renderKVList('params-list', state.params, 'param', 'value');
+  renderKVList('headers-list', state.headers, 'Header', 'Value');
+  renderKVList('form-list', state.formFields, 'field', 'value');
+
+  document.querySelectorAll('.body-type-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.bodyType === state.bodyType);
+  });
+  bodyJsonWrap.style.display = (state.bodyType === 'json' || state.bodyType === 'raw') ? 'block' : 'none';
+  bodyFormWrap.style.display = state.bodyType === 'form' ? 'block' : 'none';
+
+  // Switch to relevant tab
+  if (s.params.length) activateTab('params');
+  else if (['POST','PUT','PATCH'].includes(s.method) && s.bodyType !== 'none') activateTab('body');
+
+  toast('Sample loaded: ' + s.name, 'success');
+}
+
+renderSamples();
+
+/* ────────────────────────────────────────────
+   UI helpers
+──────────────────────────────────────────── */
+function hideResponseContent() {
+  document.getElementById('resp-content').style.display = 'none';
+}
+
+function showError(msg) {
+  const b = document.getElementById('error-banner');
+  document.getElementById('error-msg').textContent = msg;
+  b.classList.add('visible');
+}
+function hideError() {
+  document.getElementById('error-banner').classList.remove('visible');
+}
+
+function showCORS() {
+  document.getElementById('cors-warning').classList.add('visible');
+}
+function hideCORS() {
+  document.getElementById('cors-warning').classList.remove('visible');
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function copyText(text) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(
+      () => toast('Copied!', 'success'),
+      () => fallbackCopy(text)
+    );
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  toast('Copied!', 'success');
+}
+
+function downloadText(text, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ────────────────────────────────────────────
+   Toast
+──────────────────────────────────────────── */
+function toast(msg, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  container.appendChild(t);
+  setTimeout(() => {
+    t.style.transition = 'opacity 0.3s';
+    t.style.opacity = '0';
+    setTimeout(() => t.remove(), 300);
+  }, 2500);
+}
+
+/* ────────────────────────────────────────────
+   Keyboard shortcuts
+──────────────────────────────────────────── */
+document.addEventListener('keydown', e => {
+  // Ctrl/Cmd + Enter = Send
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    sendRequest();
+  }
+});
+
+})();
+</script>
+</body>
+</html>

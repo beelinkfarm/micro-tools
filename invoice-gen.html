@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InvoiceGen — Free Invoice Generator</title>
+<meta name="description" content="Create professional invoices instantly. No signup, no tracking, runs in your browser.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap');
+
+  /* ── Design tokens ── */
+  :root {
+    --bg:        #0d0d0f;
+    --bg-2:      #13131a;
+    --bg-3:      #1a1a24;
+    --bg-4:      #22222e;
+    --bg-5:      #2a2a38;
+    --border:    rgba(255,255,255,0.07);
+    --border-h:  rgba(255,255,255,0.14);
+    --text:      #f0f0f8;
+    --text-2:    #9898b0;
+    --text-3:    #5a5a72;
+    --accent:    #f0a500;
+    --accent-d:  #c48500;
+    --accent-g:  linear-gradient(135deg, #f0a500 0%, #ff6b35 100%);
+    --green:     #00d4aa;
+    --red:       #ff4d6d;
+    --blue:      #5b9cf6;
+    --purple:    #a78bfa;
+    --shadow:    0 8px 32px rgba(0,0,0,0.5);
+    --shadow-lg: 0 20px 60px rgba(0,0,0,0.7);
+    --radius:    14px;
+    --radius-sm: 8px;
+    --radius-xs: 5px;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --t:         0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  [data-theme="light"] {
+    --bg:        #f5f5fa;
+    --bg-2:      #ffffff;
+    --bg-3:      #eeeeF8;
+    --bg-4:      #e4e4f0;
+    --bg-5:      #d8d8ec;
+    --border:    rgba(0,0,0,0.08);
+    --border-h:  rgba(0,0,0,0.16);
+    --text:      #0f0f1a;
+    --text-2:    #4a4a6a;
+    --text-3:    #9898b8;
+    --shadow:    0 8px 32px rgba(240,165,0,0.08);
+    --shadow-lg: 0 20px 60px rgba(240,165,0,0.12);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+    transition: background var(--t), color var(--t);
+    overflow-x: hidden;
+  }
+
+  /* ── Ambient orbs ── */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.08;
+    pointer-events: none;
+    z-index: 0;
+    animation: drift 18s ease-in-out infinite alternate;
+  }
+  .orb-1 { width: 600px; height: 600px; background: #f0a500; top: -200px; left: -150px; }
+  .orb-2 { width: 500px; height: 500px; background: #ff6b35; bottom: -150px; right: -100px; animation-delay: -9s; }
+  .orb-3 { width: 350px; height: 350px; background: #5b9cf6; top: 50%; left: 60%; animation-delay: -5s; }
+
+  [data-theme="light"] .orb { opacity: 0.04; }
+
+  @keyframes drift {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(25px, 15px) scale(1.05); }
+  }
+
+  /* ── Floating Nav ── */
+  .micro-nav-back, .micro-nav-home {
+    position: fixed;
+    top: 72px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(20,20,23,0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    text-decoration: none;
+    color: #e0e0e0;
+    cursor: pointer;
+    z-index: 9999;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .micro-nav-back { left: 16px; }
+  .micro-nav-home { right: 16px; }
+  .micro-nav-back:hover, .micro-nav-home:hover {
+    background: rgba(40,40,46,0.95);
+    border-color: rgba(255,255,255,0.2);
+  }
+  .micro-float-bar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    background: rgba(20,20,23,0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 999px;
+    z-index: 9999;
+    transition: opacity 0.3s;
+  }
+  .micro-float-bar a {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+  }
+  .micro-float-bar a:hover { opacity: 0.85; }
+  .micro-float-bmc { background: #ffdd00; color: #0d0d0f; }
+  .micro-float-feedback { background: #58a6ff; color: #fff; }
+  @media (max-width: 400px) {
+    .micro-float-bar a { padding: 8px 14px; font-size: 0.82rem; }
+    .micro-nav-back, .micro-nav-home { width: 42px; height: 42px; font-size: 19px; }
+  }
+
+  /* ── Layout ── */
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--text);
+  }
+
+  .logo-icon {
+    width: 38px;
+    height: 38px;
+    background: var(--accent-g);
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    box-shadow: 0 4px 20px rgba(240,165,0,0.4);
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-family: var(--font-head);
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+  }
+
+  .logo-text em {
+    font-style: normal;
+    background: var(--accent-g);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .btn-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border);
+    background: var(--bg-3);
+    color: var(--text-2);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 17px;
+    transition: all var(--t);
+  }
+
+  .btn-icon:hover {
+    border-color: var(--border-h);
+    color: var(--text);
+    background: var(--bg-4);
+    transform: translateY(-1px);
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border);
+    background: var(--bg-3);
+    color: var(--text-2);
+    cursor: pointer;
+    transition: all var(--t);
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  .btn:hover {
+    background: var(--bg-4);
+    border-color: var(--border-h);
+    color: var(--text);
+    transform: translateY(-1px);
+  }
+
+  .btn-accent {
+    background: var(--accent-g);
+    border-color: transparent;
+    color: #000;
+    font-weight: 600;
+    box-shadow: 0 3px 16px rgba(240,165,0,0.3);
+  }
+
+  .btn-accent:hover {
+    box-shadow: 0 6px 24px rgba(240,165,0,0.45);
+    color: #000;
+    border-color: transparent;
+    transform: translateY(-2px);
+  }
+
+  .btn-danger {
+    background: rgba(255,77,109,0.1);
+    border-color: rgba(255,77,109,0.25);
+    color: var(--red);
+  }
+  .btn-danger:hover {
+    background: rgba(255,77,109,0.18);
+    border-color: rgba(255,77,109,0.45);
+    color: var(--red);
+  }
+
+  .btn-green {
+    background: rgba(0,212,170,0.1);
+    border-color: rgba(0,212,170,0.25);
+    color: var(--green);
+  }
+  .btn-green:hover {
+    background: rgba(0,212,170,0.18);
+    border-color: rgba(0,212,170,0.45);
+    color: var(--green);
+  }
+
+  /* ── Main grid ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  @media (max-width: 1024px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Panel ── */
+  .panel {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: border-color var(--t);
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .panel-title {
+    font-family: var(--font-head);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-2);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-body { padding: 22px; }
+
+  /* ── Form fields ── */
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .form-row.full { grid-template-columns: 1fr; }
+  .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+
+  @media (max-width: 600px) {
+    .form-row { grid-template-columns: 1fr; }
+    .form-row.triple { grid-template-columns: 1fr 1fr; }
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  label {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: var(--font-head);
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="date"],
+  select,
+  textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color var(--t), box-shadow var(--t);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: rgba(240,165,0,0.5);
+    box-shadow: 0 0 0 3px rgba(240,165,0,0.08);
+  }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239898b0' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+    cursor: pointer;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.6;
+    font-size: 13px;
+  }
+
+  input::placeholder, textarea::placeholder { color: var(--text-3); }
+
+  .section-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 18px 0;
+  }
+
+  .section-label {
+    font-family: var(--font-head);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ── Line items table ── */
+  .items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 14px;
+  }
+
+  .items-table th {
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .items-table th:last-child { text-align: center; width: 40px; }
+
+  .items-table td {
+    padding: 5px 4px;
+    vertical-align: middle;
+  }
+
+  .items-table td input {
+    padding: 7px 10px;
+    font-size: 13px;
+  }
+
+  .items-table td.col-desc { width: 40%; }
+  .items-table td.col-qty  { width: 13%; }
+  .items-table td.col-price{ width: 18%; }
+  .items-table td.col-total{ width: 20%; }
+  .items-table td.col-del  { width: 9%; text-align: center; }
+
+  .item-total-display {
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+    padding: 7px 10px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .btn-remove-row {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,77,109,0.2);
+    background: rgba(255,77,109,0.07);
+    color: var(--red);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 15px;
+    transition: all var(--t);
+    flex-shrink: 0;
+  }
+  .btn-remove-row:hover {
+    background: rgba(255,77,109,0.15);
+    border-color: rgba(255,77,109,0.4);
+    transform: scale(1.1);
+  }
+
+  /* ── Totals ── */
+  .totals-box {
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .totals-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13.5px;
+  }
+
+  .totals-row .label { color: var(--text-2); }
+
+  .totals-row .val {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .totals-row.grand {
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+    margin-top: 4px;
+  }
+
+  .totals-row.grand .label {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .totals-row.grand .val {
+    font-size: 18px;
+    color: var(--accent);
+  }
+
+  .tax-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .tax-row .label { color: var(--text-2); font-size: 13.5px; flex: 1; }
+
+  .tax-row input {
+    width: 72px;
+    padding: 5px 8px;
+    font-size: 13px;
+    text-align: right;
+  }
+
+  .tax-row .val {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text);
+    min-width: 90px;
+    text-align: right;
+  }
+
+  /* ── Template selector ── */
+  .template-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+
+  .pill {
+    padding: 6px 14px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: var(--bg-3);
+    color: var(--text-2);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--t);
+    font-family: var(--font-head);
+  }
+
+  .pill:hover {
+    border-color: var(--border-h);
+    color: var(--text);
+    background: var(--bg-4);
+  }
+
+  .pill.active {
+    background: var(--accent-g);
+    border-color: transparent;
+    color: #000;
+    box-shadow: 0 2px 12px rgba(240,165,0,0.3);
+  }
+
+  /* ── Preview panel ── */
+  .preview-sticky {
+    position: sticky;
+    top: 24px;
+  }
+
+  .preview-frame {
+    background: #fff;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    min-height: 500px;
+    font-family: 'Inter', sans-serif;
+    color: #111;
+    padding: 0;
+  }
+
+  /* ── Invoice Preview Styles (inside preview-frame) ── */
+  .inv {
+    padding: 40px;
+    min-height: 500px;
+    font-family: 'Inter', sans-serif;
+    color: #1a1a2e;
+    font-size: 13px;
+    line-height: 1.5;
+    position: relative;
+  }
+
+  /* Template: Clean */
+  .inv.tpl-clean { background: #fff; }
+  .inv.tpl-clean .inv-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 36px; gap: 24px; }
+  .inv.tpl-clean .inv-brand { font-size: 22px; font-weight: 800; font-family: 'Syne', sans-serif; color: #0d0d0f; }
+  .inv.tpl-clean .inv-title-badge { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 28px; color: #f0a500; text-align: right; }
+  .inv.tpl-clean .inv-meta { text-align: right; color: #666; font-size: 12px; margin-top: 4px; }
+  .inv.tpl-clean .inv-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
+  .inv.tpl-clean .inv-party-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #f0a500; margin-bottom: 6px; font-family: 'Syne', sans-serif; }
+  .inv.tpl-clean .inv-party-name { font-weight: 700; font-size: 14px; color: #0d0d0f; margin-bottom: 3px; }
+  .inv.tpl-clean .inv-party-addr { color: #555; font-size: 12px; line-height: 1.6; }
+  .inv.tpl-clean .inv-divider { border: none; border-top: 2px solid #f0a500; margin-bottom: 20px; }
+  .inv.tpl-clean .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+  .inv.tpl-clean .inv-table th { background: #0d0d0f; color: #fff; font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 10px 12px; text-align: left; }
+  .inv.tpl-clean .inv-table th:last-child { text-align: right; }
+  .inv.tpl-clean .inv-table td { padding: 9px 12px; border-bottom: 1px solid #f0f0f8; font-size: 12.5px; }
+  .inv.tpl-clean .inv-table td:last-child { text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  .inv.tpl-clean .inv-table td:nth-child(2), .inv.tpl-clean .inv-table td:nth-child(3) { text-align: right; color: #444; }
+  .inv.tpl-clean .inv-totals { display: flex; justify-content: flex-end; margin-bottom: 20px; }
+  .inv.tpl-clean .inv-totals-inner { width: 240px; }
+  .inv.tpl-clean .inv-totals-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 12.5px; color: #444; }
+  .inv.tpl-clean .inv-totals-row .tval { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  .inv.tpl-clean .inv-totals-grand { display: flex; justify-content: space-between; padding: 10px 12px; background: #0d0d0f; color: #fff; border-radius: 6px; font-weight: 700; font-size: 14px; font-family: 'Syne', sans-serif; margin-top: 8px; }
+  .inv.tpl-clean .inv-totals-grand .tval { color: #f0a500; font-family: 'JetBrains Mono', monospace; }
+  .inv.tpl-clean .inv-notes { background: #f8f8fc; border-left: 3px solid #f0a500; border-radius: 0 6px 6px 0; padding: 12px 16px; font-size: 12px; color: #555; margin-top: 20px; }
+  .inv.tpl-clean .inv-notes-label { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 5px; font-family: 'Syne', sans-serif; }
+
+  /* Template: Modern */
+  .inv.tpl-modern { background: #0d0d0f; color: #f0f0f8; }
+  .inv.tpl-modern .inv-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; gap: 24px; }
+  .inv.tpl-modern .inv-brand { font-size: 22px; font-weight: 800; font-family: 'Syne', sans-serif; color: #f0f0f8; }
+  .inv.tpl-modern .inv-brand-sub { font-size: 11px; color: #9898b0; margin-top: 2px; }
+  .inv.tpl-modern .inv-title-badge { background: linear-gradient(135deg,#f0a500,#ff6b35); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 30px; text-align: right; }
+  .inv.tpl-modern .inv-meta { text-align: right; color: #9898b0; font-size: 11.5px; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+  .inv.tpl-modern .inv-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
+  .inv.tpl-modern .inv-party-box { background: #13131a; border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 14px 16px; }
+  .inv.tpl-modern .inv-party-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #f0a500; margin-bottom: 7px; font-family: 'Syne', sans-serif; }
+  .inv.tpl-modern .inv-party-name { font-weight: 700; font-size: 14px; color: #f0f0f8; margin-bottom: 3px; }
+  .inv.tpl-modern .inv-party-addr { color: #9898b0; font-size: 11.5px; line-height: 1.65; }
+  .inv.tpl-modern .inv-divider { border: none; border-top: 1px solid rgba(255,255,255,0.07); margin-bottom: 20px; }
+  .inv.tpl-modern .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+  .inv.tpl-modern .inv-table th { background: rgba(240,165,0,0.12); color: #f0a500; font-family: 'Syne', sans-serif; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(240,165,0,0.2); }
+  .inv.tpl-modern .inv-table th:last-child { text-align: right; }
+  .inv.tpl-modern .inv-table td { padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12.5px; color: #e0e0f0; }
+  .inv.tpl-modern .inv-table td:last-child { text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #f0a500; }
+  .inv.tpl-modern .inv-table td:nth-child(2), .inv.tpl-modern .inv-table td:nth-child(3) { text-align: right; color: #9898b0; }
+  .inv.tpl-modern .inv-totals { display: flex; justify-content: flex-end; margin-bottom: 20px; }
+  .inv.tpl-modern .inv-totals-inner { width: 240px; }
+  .inv.tpl-modern .inv-totals-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 12.5px; color: #9898b0; }
+  .inv.tpl-modern .inv-totals-row .tval { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #e0e0f0; }
+  .inv.tpl-modern .inv-totals-grand { display: flex; justify-content: space-between; padding: 12px 14px; background: linear-gradient(135deg, rgba(240,165,0,0.15), rgba(255,107,53,0.1)); border: 1px solid rgba(240,165,0,0.3); color: #fff; border-radius: 8px; font-weight: 700; font-size: 14px; font-family: 'Syne', sans-serif; margin-top: 8px; }
+  .inv.tpl-modern .inv-totals-grand .tval { color: #f0a500; font-family: 'JetBrains Mono', monospace; font-size: 16px; }
+  .inv.tpl-modern .inv-notes { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #9898b0; margin-top: 20px; }
+  .inv.tpl-modern .inv-notes-label { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #5a5a72; margin-bottom: 5px; font-family: 'Syne', sans-serif; }
+
+  /* Template: Minimal */
+  .inv.tpl-minimal { background: #fafafa; color: #1a1a1a; }
+  .inv.tpl-minimal .inv-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; gap: 24px; padding-bottom: 24px; border-bottom: 1px solid #e0e0e0; }
+  .inv.tpl-minimal .inv-brand { font-size: 24px; font-weight: 300; font-family: 'Inter', sans-serif; letter-spacing: -0.5px; color: #1a1a1a; }
+  .inv.tpl-minimal .inv-title-badge { font-weight: 300; font-size: 28px; letter-spacing: -0.5px; color: #1a1a1a; text-align: right; }
+  .inv.tpl-minimal .inv-meta { text-align: right; color: #888; font-size: 11.5px; margin-top: 4px; font-family: 'Inter', sans-serif; }
+  .inv.tpl-minimal .inv-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 36px; }
+  .inv.tpl-minimal .inv-party-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.12em; color: #aaa; margin-bottom: 8px; }
+  .inv.tpl-minimal .inv-party-name { font-weight: 600; font-size: 14px; color: #1a1a1a; margin-bottom: 3px; }
+  .inv.tpl-minimal .inv-party-addr { color: #666; font-size: 12px; line-height: 1.7; }
+  .inv.tpl-minimal .inv-divider { border: none; border-top: 1px solid #e0e0e0; margin-bottom: 24px; }
+  .inv.tpl-minimal .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  .inv.tpl-minimal .inv-table th { color: #aaa; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.12em; padding: 8px 0; text-align: left; border-bottom: 1px solid #e0e0e0; }
+  .inv.tpl-minimal .inv-table th:last-child { text-align: right; }
+  .inv.tpl-minimal .inv-table td { padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; color: #1a1a1a; }
+  .inv.tpl-minimal .inv-table td:last-child { text-align: right; color: #1a1a1a; font-variant-numeric: tabular-nums; }
+  .inv.tpl-minimal .inv-table td:nth-child(2), .inv.tpl-minimal .inv-table td:nth-child(3) { text-align: right; color: #888; }
+  .inv.tpl-minimal .inv-totals { display: flex; justify-content: flex-end; margin-bottom: 24px; }
+  .inv.tpl-minimal .inv-totals-inner { width: 220px; }
+  .inv.tpl-minimal .inv-totals-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 12.5px; color: #888; border-bottom: 1px solid #f0f0f0; }
+  .inv.tpl-minimal .inv-totals-row .tval { color: #1a1a1a; font-variant-numeric: tabular-nums; }
+  .inv.tpl-minimal .inv-totals-grand { display: flex; justify-content: space-between; padding: 10px 0; font-weight: 600; font-size: 15px; color: #1a1a1a; margin-top: 4px; }
+  .inv.tpl-minimal .inv-totals-grand .tval { font-size: 18px; }
+  .inv.tpl-minimal .inv-notes { border-top: 1px solid #e0e0e0; padding-top: 20px; font-size: 12px; color: #888; margin-top: 20px; }
+  .inv.tpl-minimal .inv-notes-label { font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: #bbb; margin-bottom: 5px; }
+
+  /* ── Toast ── */
+  .toast-container {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .toast {
+    background: var(--bg-4);
+    border: 1px solid var(--border-h);
+    border-radius: var(--radius-sm);
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    box-shadow: var(--shadow);
+    animation: toastIn 0.25s ease, toastOut 0.3s ease 2s forwards;
+    white-space: nowrap;
+  }
+
+  .toast.success { border-color: rgba(0,212,170,0.4); color: var(--green); }
+  .toast.error { border-color: rgba(255,77,109,0.4); color: var(--red); }
+
+  @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes toastOut { from { opacity: 1; } to { opacity: 0; pointer-events: none; } }
+
+  /* ── Toolbar row ── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-sep {
+    width: 1px;
+    height: 28px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  /* ── Saved drafts ── */
+  .drafts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .draft-card {
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all var(--t);
+    position: relative;
+  }
+
+  .draft-card:hover {
+    border-color: rgba(240,165,0,0.35);
+    background: var(--bg-4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(240,165,0,0.1);
+  }
+
+  .draft-card .dc-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 3px;
+    font-weight: 600;
+  }
+
+  .draft-card .dc-client {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .draft-card .dc-amount {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-2);
+  }
+
+  .draft-card .dc-date {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 4px;
+  }
+
+  .draft-card .dc-del {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,77,109,0.2);
+    background: transparent;
+    color: var(--red);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    line-height: 1;
+    transition: all var(--t);
+    opacity: 0;
+  }
+
+  .draft-card:hover .dc-del { opacity: 1; }
+  .draft-card .dc-del:hover { background: rgba(255,77,109,0.15); }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--text-3);
+    font-size: 13px;
+  }
+  .empty-state span { font-size: 28px; display: block; margin-bottom: 8px; }
+
+  /* ── Print styles ── */
+  @media print {
+    body { background: white !important; }
+    .orb, .micro-nav-back, .micro-nav-home, .micro-float-bar,
+    header, .toolbar, .panel-header .btn, .panel-header .panel-title,
+    #form-col, #drafts-panel, .toast-container, #giscus-comments,
+    footer { display: none !important; }
+
+    .main-grid { display: block !important; }
+    #preview-col { position: static !important; }
+    .preview-sticky { position: static !important; }
+    .panel { border: none !important; box-shadow: none !important; }
+    .panel-header { display: none !important; }
+    .panel-body { padding: 0 !important; }
+    .preview-frame { box-shadow: none !important; border-radius: 0 !important; }
+    .inv { padding: 0 !important; }
+
+    @page { margin: 18mm; size: A4; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Floating Navigation -->
+<button class="micro-nav-back" onclick="history.back()" aria-label="Go back">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+</button>
+<a class="micro-nav-home" href="index.html" aria-label="Home">&#127968;</a>
+<div class="micro-float-bar">
+  <a class="micro-float-bmc" href="https://buymeacoffee.com/beelinkfarm" target="_blank" rel="noopener">&#9749; Buy me a coffee</a>
+  <a class="micro-float-feedback" href="https://github.com/beelinkfarm/micro-tools/issues/new?title=[InvoiceGen]%20&labels=invoice-gen" target="_blank" rel="noopener">&#128221; Issue</a>
+</div>
+
+<!-- Ambient orbs -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">&#128196;</div>
+      <div class="logo-text"><em>InvoiceGen</em> &mdash; Free Invoice Generator</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="btn-sample" title="Load sample data">&#127381; Sample</button>
+      <button class="btn btn-green" id="btn-save" title="Save draft">&#128190; Save Draft</button>
+      <button class="btn btn-accent" id="btn-print" title="Download PDF">&#128196; Download PDF</button>
+      <button class="btn-icon" id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">&#9788;</button>
+    </div>
+  </header>
+
+  <!-- Toolbar: templates -->
+  <div class="toolbar">
+    <span style="font-family:var(--font-head);font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.08em;">Template:</span>
+    <button class="pill active" data-tpl="clean">Clean</button>
+    <button class="pill" data-tpl="modern">Modern</button>
+    <button class="pill" data-tpl="minimal">Minimal</button>
+  </div>
+
+  <!-- Main layout -->
+  <div class="main-grid">
+
+    <!-- Left: Form -->
+    <div id="form-col">
+
+      <!-- Sender -->
+      <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-header">
+          <div class="panel-title">&#128100; Your Details</div>
+        </div>
+        <div class="panel-body">
+          <div class="form-row full">
+            <div class="form-group">
+              <label for="from-name">Company / Name</label>
+              <input type="text" id="from-name" placeholder="Acme Studio" autocomplete="organization">
+            </div>
+          </div>
+          <div class="form-row full">
+            <div class="form-group">
+              <label for="from-address">Address</label>
+              <textarea id="from-address" rows="2" placeholder="123 Main St, San Francisco, CA 94102"></textarea>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="from-email">Email</label>
+              <input type="email" id="from-email" placeholder="hello@acme.com">
+            </div>
+            <div class="form-group">
+              <label for="from-phone">Phone</label>
+              <input type="tel" id="from-phone" placeholder="+1 (555) 000-0000">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Client -->
+      <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-header">
+          <div class="panel-title">&#128188; Client Details</div>
+        </div>
+        <div class="panel-body">
+          <div class="form-row full">
+            <div class="form-group">
+              <label for="to-name">Company / Name</label>
+              <input type="text" id="to-name" placeholder="Client Corp" autocomplete="off">
+            </div>
+          </div>
+          <div class="form-row full">
+            <div class="form-group">
+              <label for="to-address">Address</label>
+              <textarea id="to-address" rows="2" placeholder="456 Client Ave, New York, NY 10001"></textarea>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="to-email">Email</label>
+              <input type="email" id="to-email" placeholder="billing@clientcorp.com">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Invoice Meta -->
+      <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-header">
+          <div class="panel-title">&#128203; Invoice Details</div>
+        </div>
+        <div class="panel-body">
+          <div class="form-row triple">
+            <div class="form-group">
+              <label for="inv-number">Invoice #</label>
+              <input type="text" id="inv-number" placeholder="INV-001" style="font-family:var(--font-mono);">
+            </div>
+            <div class="form-group">
+              <label for="inv-date">Date</label>
+              <input type="date" id="inv-date">
+            </div>
+            <div class="form-group">
+              <label for="inv-due">Due Date</label>
+              <input type="date" id="inv-due">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inv-currency">Currency</label>
+              <select id="inv-currency">
+                <option value="USD">USD — US Dollar ($)</option>
+                <option value="EUR">EUR — Euro (€)</option>
+                <option value="KRW">KRW — Korean Won (₩)</option>
+                <option value="JPY">JPY — Japanese Yen (¥)</option>
+                <option value="GBP">GBP — British Pound (£)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Line Items -->
+      <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-header">
+          <div class="panel-title">&#128202; Line Items</div>
+          <button class="btn btn-green" id="btn-add-row">&#43; Add Row</button>
+        </div>
+        <div class="panel-body" style="overflow-x:auto;">
+          <table class="items-table" id="items-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th style="text-align:right;">Qty</th>
+                <th style="text-align:right;">Unit Price</th>
+                <th style="text-align:right;">Total</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="items-body"></tbody>
+          </table>
+
+          <!-- Totals -->
+          <div class="totals-box">
+            <div class="totals-row">
+              <span class="label">Subtotal</span>
+              <span class="val" id="subtotal-display">—</span>
+            </div>
+            <div class="tax-row">
+              <span class="label">Tax Rate (%)</span>
+              <input type="number" id="tax-rate" min="0" max="100" step="0.1" value="0" style="width:72px;text-align:right;">
+              <span class="val" id="tax-display">—</span>
+            </div>
+            <div class="totals-row grand">
+              <span class="label">Grand Total</span>
+              <span class="val" id="grand-display">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-header">
+          <div class="panel-title">&#128221; Notes &amp; Terms</div>
+        </div>
+        <div class="panel-body">
+          <div class="form-group">
+            <label for="inv-notes">Notes / Payment Terms</label>
+            <textarea id="inv-notes" rows="4" placeholder="Payment due within 30 days. Bank transfer details: ..."></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /form-col -->
+
+    <!-- Right: Preview -->
+    <div id="preview-col">
+      <div class="preview-sticky">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">&#128065; Live Preview</div>
+            <button class="btn btn-accent" onclick="window.print()">&#128196; Print / PDF</button>
+          </div>
+          <div class="panel-body" style="padding:16px;">
+            <div class="preview-frame" id="preview-frame">
+              <!-- rendered by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /preview-col -->
+
+  </div><!-- /main-grid -->
+
+  <!-- Saved Drafts -->
+  <div class="panel" id="drafts-panel" style="margin-top:24px;">
+    <div class="panel-header">
+      <div class="panel-title">&#128190; Saved Drafts</div>
+      <button class="btn btn-danger" id="btn-clear-drafts" style="font-size:12px;">&#128465; Clear All</button>
+    </div>
+    <div class="panel-body">
+      <div class="drafts-grid" id="drafts-grid">
+        <div class="empty-state"><span>&#128196;</span>No saved drafts yet.</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<footer style="border-top:1px solid var(--border,rgba(255,255,255,0.07));padding:16px 24px;text-align:center;color:var(--text-2,#9898b0);font-size:0.85rem;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;position:relative;z-index:1;">
+  <span>InvoiceGen &mdash; part of <a href="index.html" style="color:inherit;text-decoration:none;">MicroTools</a> &middot; Runs entirely in your browser</span>
+</footer>
+
+<!-- Comments Section -->
+<div id="giscus-comments" style="max-width:800px;margin:40px auto 20px;padding:0 16px 80px;">
+  <h3 style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700;color:var(--text-primary,#f0eff2);margin-bottom:16px;">&#128172; Comments &amp; Feedback</h3>
+  <script src="https://giscus.app/client.js" data-repo="beelinkfarm/micro-tools" data-repo-id="R_kgDORt_Frg" data-category="General" data-category-id="DIC_kwDORt_Frs4C5Dj0" data-mapping="specific" data-term="InvoiceGen" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="top" data-theme="dark_dimmed" data-lang="en" crossorigin="anonymous" async></script>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ── State ── */
+  const state = {
+    template: 'clean',
+    items: [],
+    currency: 'USD',
+  };
+
+  const CURRENCY_MAP = {
+    USD: { symbol: '$', locale: 'en-US' },
+    EUR: { symbol: '€', locale: 'de-DE' },
+    KRW: { symbol: '₩', locale: 'ko-KR' },
+    JPY: { symbol: '¥', locale: 'ja-JP' },
+    GBP: { symbol: '£', locale: 'en-GB' },
+  };
+
+  /* ── Formatters ── */
+  function fmtMoney(val) {
+    const c = CURRENCY_MAP[state.currency] || CURRENCY_MAP.USD;
+    try {
+      return new Intl.NumberFormat(c.locale, {
+        style: 'currency', currency: state.currency,
+        minimumFractionDigits: state.currency === 'KRW' || state.currency === 'JPY' ? 0 : 2,
+        maximumFractionDigits: state.currency === 'KRW' || state.currency === 'JPY' ? 0 : 2,
+      }).format(val);
+    } catch(e) {
+      return c.symbol + val.toFixed(2);
+    }
+  }
+
+  function fmtDate(str) {
+    if (!str) return '';
+    try {
+      const [y, m, d] = str.split('-');
+      return new Date(+y, +m - 1, +d).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+    } catch(e) { return str; }
+  }
+
+  /* ── DOM refs ── */
+  const $ = id => document.getElementById(id);
+  const field = id => ($( id) ? $( id).value.trim() : '');
+
+  const itemsBody = $('items-body');
+  const previewFrame = $('preview-frame');
+
+  /* ── Line Items ── */
+  let rowId = 0;
+
+  function addRow(desc='', qty=1, price=0) {
+    const id = ++rowId;
+    state.items.push({ id, desc, qty: +qty, price: +price });
+    renderItems();
+  }
+
+  function removeRow(id) {
+    state.items = state.items.filter(r => r.id !== id);
+    rowId = state.items.length ? Math.max(...state.items.map(r => r.id)) : 0;
+    renderItems();
+  }
+
+  function updateRow(id, field, val) {
+    const row = state.items.find(r => r.id === id);
+    if (!row) return;
+    if (field === 'desc') row.desc = val;
+    else if (field === 'qty') row.qty = parseFloat(val) || 0;
+    else if (field === 'price') row.price = parseFloat(val) || 0;
+    renderItems(true); // skip re-render of inputs to avoid cursor jump
+  }
+
+  function renderItems(skipInputs = false) {
+    if (!skipInputs) {
+      itemsBody.innerHTML = '';
+      state.items.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="col-desc"><input type="text" value="${esc(row.desc)}" placeholder="Service description" data-id="${row.id}" data-field="desc"></td>
+          <td class="col-qty"><input type="number" value="${row.qty}" min="0" step="any" style="text-align:right;" data-id="${row.id}" data-field="qty"></td>
+          <td class="col-price"><input type="number" value="${row.price}" min="0" step="any" style="text-align:right;" data-id="${row.id}" data-field="price"></td>
+          <td class="col-total"><div class="item-total-display" id="row-total-${row.id}">${fmtMoney(row.qty * row.price)}</div></td>
+          <td class="col-del"><button class="btn-remove-row" data-id="${row.id}" title="Remove row">&times;</button></td>
+        `;
+        itemsBody.appendChild(tr);
+      });
+    } else {
+      // only update total cells and totals
+      state.items.forEach(row => {
+        const cell = document.getElementById('row-total-' + row.id);
+        if (cell) cell.textContent = fmtMoney(row.qty * row.price);
+      });
+    }
+    updateTotals();
+    renderPreview();
+  }
+
+  function updateTotals() {
+    const subtotal = state.items.reduce((s, r) => s + r.qty * r.price, 0);
+    const taxRate = parseFloat($('tax-rate').value) || 0;
+    const tax = subtotal * taxRate / 100;
+    const grand = subtotal + tax;
+
+    $('subtotal-display').textContent = fmtMoney(subtotal);
+    $('tax-display').textContent = fmtMoney(tax);
+    $('grand-display').textContent = fmtMoney(grand);
+  }
+
+  /* ── Escape HTML ── */
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function nl2br(str) {
+    return esc(str).replace(/\n/g, '<br>');
+  }
+
+  /* ── Preview Render ── */
+  function renderPreview() {
+    const tpl = state.template;
+    const cur = state.currency;
+    const subtotal = state.items.reduce((s, r) => s + r.qty * r.price, 0);
+    const taxRate = parseFloat($('tax-rate') ? $('tax-rate').value : 0) || 0;
+    const tax = subtotal * taxRate / 100;
+    const grand = subtotal + tax;
+
+    const fromName = field('from-name');
+    const fromAddr = field('from-address');
+    const fromEmail = field('from-email');
+    const fromPhone = field('from-phone');
+    const toName = field('to-name');
+    const toAddr = field('to-address');
+    const toEmail = field('to-email');
+    const invNum = field('inv-number');
+    const invDate = field('inv-date');
+    const invDue = field('inv-due');
+    const notes = field('inv-notes');
+
+    // Build party address HTML
+    function partyInfo(name, addr, email, phone) {
+      let parts = [];
+      if (name) parts.push(`<div class="inv-party-name">${esc(name)}</div>`);
+      if (addr) parts.push(`<div class="inv-party-addr">${nl2br(addr)}</div>`);
+      if (email) parts.push(`<div class="inv-party-addr">${esc(email)}</div>`);
+      if (phone) parts.push(`<div class="inv-party-addr">${esc(phone)}</div>`);
+      return parts.join('') || `<div class="inv-party-addr" style="color:#aaa;">—</div>`;
+    }
+
+    // Line items rows
+    function itemRows() {
+      if (!state.items.length) {
+        return `<tr><td colspan="4" style="text-align:center;padding:20px;color:#aaa;font-style:italic;">No items added yet</td></tr>`;
+      }
+      return state.items.map(r => `
+        <tr>
+          <td>${esc(r.desc) || '<em style="opacity:.5">—</em>'}</td>
+          <td style="text-align:right;">${r.qty}</td>
+          <td style="text-align:right;">${fmtMoney(r.price)}</td>
+          <td>${fmtMoney(r.qty * r.price)}</td>
+        </tr>
+      `).join('');
+    }
+
+    // Totals rows
+    function totalsRows() {
+      let html = `<div class="inv-totals-row"><span>Subtotal</span><span class="tval">${fmtMoney(subtotal)}</span></div>`;
+      if (taxRate > 0) {
+        html += `<div class="inv-totals-row"><span>Tax (${taxRate}%)</span><span class="tval">${fmtMoney(tax)}</span></div>`;
+      }
+      return html;
+    }
+
+    // Notes section
+    function notesSection() {
+      if (!notes) return '';
+      return `<div class="inv-notes"><div class="inv-notes-label">Notes &amp; Terms</div>${nl2br(notes)}</div>`;
+    }
+
+    let html = '';
+
+    if (tpl === 'clean') {
+      html = `
+        <div class="inv tpl-clean">
+          <div class="inv-header">
+            <div>
+              <div class="inv-brand">${esc(fromName) || 'Your Company'}</div>
+            </div>
+            <div>
+              <div class="inv-title-badge">INVOICE</div>
+              <div class="inv-meta">
+                ${invNum ? `<div><strong>#${esc(invNum)}</strong></div>` : ''}
+                ${invDate ? `<div>Issued: ${fmtDate(invDate)}</div>` : ''}
+                ${invDue ? `<div>Due: ${fmtDate(invDue)}</div>` : ''}
+              </div>
+            </div>
+          </div>
+          <div class="inv-parties">
+            <div>
+              <div class="inv-party-label">From</div>
+              ${partyInfo(fromName, fromAddr, fromEmail, fromPhone)}
+            </div>
+            <div>
+              <div class="inv-party-label">Bill To</div>
+              ${partyInfo(toName, toAddr, toEmail, '')}
+            </div>
+          </div>
+          <hr class="inv-divider">
+          <table class="inv-table">
+            <thead><tr><th>Description</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Unit Price</th><th style="text-align:right;">Total</th></tr></thead>
+            <tbody>${itemRows()}</tbody>
+          </table>
+          <div class="inv-totals">
+            <div class="inv-totals-inner">
+              ${totalsRows()}
+              <div class="inv-totals-grand"><span>Total Due</span><span class="tval">${fmtMoney(grand)}</span></div>
+            </div>
+          </div>
+          ${notesSection()}
+        </div>
+      `;
+    } else if (tpl === 'modern') {
+      html = `
+        <div class="inv tpl-modern">
+          <div class="inv-header">
+            <div>
+              <div class="inv-brand">${esc(fromName) || 'Your Company'}</div>
+              <div class="inv-brand-sub">${esc(fromEmail)}${fromEmail && fromPhone ? ' &middot; ' : ''}${esc(fromPhone)}</div>
+            </div>
+            <div>
+              <div class="inv-title-badge">INVOICE</div>
+              <div class="inv-meta">
+                ${invNum ? `#${esc(invNum)}&nbsp;&nbsp;` : ''}${invDate ? fmtDate(invDate) : ''}
+                ${invDue ? `<br>Due: ${fmtDate(invDue)}` : ''}
+              </div>
+            </div>
+          </div>
+          <div class="inv-parties">
+            <div class="inv-party-box">
+              <div class="inv-party-label">From</div>
+              ${partyInfo(fromName, fromAddr, fromEmail, fromPhone)}
+            </div>
+            <div class="inv-party-box">
+              <div class="inv-party-label">Bill To</div>
+              ${partyInfo(toName, toAddr, toEmail, '')}
+            </div>
+          </div>
+          <hr class="inv-divider">
+          <table class="inv-table">
+            <thead><tr><th>Description</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Unit Price</th><th style="text-align:right;">Total</th></tr></thead>
+            <tbody>${itemRows()}</tbody>
+          </table>
+          <div class="inv-totals">
+            <div class="inv-totals-inner">
+              ${totalsRows()}
+              <div class="inv-totals-grand"><span>Total Due</span><span class="tval">${fmtMoney(grand)}</span></div>
+            </div>
+          </div>
+          ${notesSection()}
+        </div>
+      `;
+    } else if (tpl === 'minimal') {
+      html = `
+        <div class="inv tpl-minimal">
+          <div class="inv-header">
+            <div class="inv-brand">${esc(fromName) || 'Your Company'}</div>
+            <div>
+              <div class="inv-title-badge">Invoice</div>
+              <div class="inv-meta">
+                ${invNum ? `No. ${esc(invNum)}` : ''}
+                ${invDate ? ` &middot; ${fmtDate(invDate)}` : ''}
+                ${invDue ? `<br>Due: ${fmtDate(invDue)}` : ''}
+              </div>
+            </div>
+          </div>
+          <div class="inv-parties">
+            <div>
+              <div class="inv-party-label">From</div>
+              ${partyInfo(fromName, fromAddr, fromEmail, fromPhone)}
+            </div>
+            <div>
+              <div class="inv-party-label">Bill To</div>
+              ${partyInfo(toName, toAddr, toEmail, '')}
+            </div>
+          </div>
+          <hr class="inv-divider">
+          <table class="inv-table">
+            <thead><tr><th>Description</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Unit Price</th><th style="text-align:right;">Total</th></tr></thead>
+            <tbody>${itemRows()}</tbody>
+          </table>
+          <div class="inv-totals">
+            <div class="inv-totals-inner">
+              ${totalsRows()}
+              <div class="inv-totals-grand"><span>Total Due</span><span class="tval">${fmtMoney(grand)}</span></div>
+            </div>
+          </div>
+          ${notesSection()}
+        </div>
+      `;
+    }
+
+    previewFrame.innerHTML = html;
+  }
+
+  /* ── Auto-number generator ── */
+  function genInvoiceNumber() {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const drafts = loadDrafts();
+    const count = drafts.length + 1;
+    return `INV-${y}${m}-${String(count).padStart(3, '0')}`;
+  }
+
+  /* ── Default dates ── */
+  function initDates() {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    $('inv-date').value = `${y}-${m}-${d}`;
+
+    const due = new Date(today);
+    due.setDate(due.getDate() + 30);
+    const dy = due.getFullYear();
+    const dm = String(due.getMonth() + 1).padStart(2, '0');
+    const dd = String(due.getDate()).padStart(2, '0');
+    $('inv-due').value = `${dy}-${dm}-${dd}`;
+
+    $('inv-number').value = genInvoiceNumber();
+  }
+
+  /* ── Sample data ── */
+  function loadSample() {
+    $('from-name').value = 'Acme Studio LLC';
+    $('from-address').value = '123 Creative Ave\nSan Francisco, CA 94102';
+    $('from-email').value = 'hello@acmestudio.com';
+    $('from-phone').value = '+1 (415) 555-0100';
+    $('to-name').value = 'TechCorp International';
+    $('to-address').value = '456 Enterprise Blvd\nNew York, NY 10001';
+    $('to-email').value = 'billing@techcorp.com';
+    $('inv-currency').value = 'USD';
+    state.currency = 'USD';
+    $('inv-number').value = 'INV-2025-042';
+    $('tax-rate').value = '8.5';
+    $('inv-notes').value = 'Payment due within 30 days.\nBank: Chase · Account: 0042-xxxx · Routing: 021000021\nThank you for your business!';
+
+    // Reset and add sample items
+    state.items = [];
+    rowId = 0;
+    addRow('Website Redesign — UX/UI', 1, 3500);
+    addRow('Frontend Development (React)', 40, 120);
+    addRow('SEO Optimization & Analytics Setup', 1, 800);
+    addRow('Ongoing Support Retainer (3 months)', 3, 500);
+
+    toast('Sample data loaded!', 'success');
+  }
+
+  /* ── Draft persistence ── */
+  const DRAFT_KEY = 'invoicegen_drafts';
+
+  function loadDrafts() {
+    try { return JSON.parse(localStorage.getItem(DRAFT_KEY)) || []; }
+    catch(e) { return []; }
+  }
+
+  function saveDrafts(drafts) {
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts)); }
+    catch(e) { toast('Could not save to localStorage', 'error'); }
+  }
+
+  function collectFormData() {
+    return {
+      id: Date.now(),
+      savedAt: new Date().toISOString(),
+      template: state.template,
+      currency: state.currency,
+      fromName: field('from-name'),
+      fromAddress: field('from-address'),
+      fromEmail: field('from-email'),
+      fromPhone: field('from-phone'),
+      toName: field('to-name'),
+      toAddress: field('to-address'),
+      toEmail: field('to-email'),
+      invNumber: field('inv-number'),
+      invDate: field('inv-date'),
+      invDue: field('inv-due'),
+      taxRate: $('tax-rate').value,
+      notes: field('inv-notes'),
+      items: state.items.map(r => ({ desc: r.desc, qty: r.qty, price: r.price })),
+    };
+  }
+
+  function applyFormData(data) {
+    $('from-name').value = data.fromName || '';
+    $('from-address').value = data.fromAddress || '';
+    $('from-email').value = data.fromEmail || '';
+    $('from-phone').value = data.fromPhone || '';
+    $('to-name').value = data.toName || '';
+    $('to-address').value = data.toAddress || '';
+    $('to-email').value = data.toEmail || '';
+    $('inv-number').value = data.invNumber || '';
+    $('inv-date').value = data.invDate || '';
+    $('inv-due').value = data.invDue || '';
+    $('tax-rate').value = data.taxRate || '0';
+    $('inv-notes').value = data.notes || '';
+    $('inv-currency').value = data.currency || 'USD';
+    state.currency = data.currency || 'USD';
+
+    if (data.template) {
+      state.template = data.template;
+      document.querySelectorAll('.pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.tpl === data.template);
+      });
+    }
+
+    state.items = [];
+    rowId = 0;
+    (data.items || []).forEach(r => addRow(r.desc, r.qty, r.price));
+    if (!data.items || !data.items.length) renderPreview();
+  }
+
+  function saveDraft() {
+    const data = collectFormData();
+    const drafts = loadDrafts();
+
+    // Replace if same invoice number exists
+    const idx = drafts.findIndex(d => d.invNumber && d.invNumber === data.invNumber);
+    if (idx !== -1) drafts.splice(idx, 1, data);
+    else drafts.unshift(data);
+
+    // Keep last 20
+    if (drafts.length > 20) drafts.pop();
+    saveDrafts(drafts);
+    renderDrafts();
+    toast('Draft saved!', 'success');
+  }
+
+  function deleteDraft(id) {
+    const drafts = loadDrafts().filter(d => d.id !== +id);
+    saveDrafts(drafts);
+    renderDrafts();
+    toast('Draft deleted', '');
+  }
+
+  function renderDrafts() {
+    const drafts = loadDrafts();
+    const grid = $('drafts-grid');
+    if (!drafts.length) {
+      grid.innerHTML = '<div class="empty-state"><span>&#128196;</span>No saved drafts yet.</div>';
+      return;
+    }
+
+    grid.innerHTML = drafts.map(d => {
+      const subtotal = (d.items || []).reduce((s, r) => s + (r.qty * r.price), 0);
+      const tax = subtotal * (+d.taxRate || 0) / 100;
+      const grand = subtotal + tax;
+      const cur = d.currency || 'USD';
+      let grandFmt = '';
+      try {
+        grandFmt = new Intl.NumberFormat(CURRENCY_MAP[cur]?.locale || 'en-US', {
+          style: 'currency', currency: cur,
+          maximumFractionDigits: cur === 'KRW' || cur === 'JPY' ? 0 : 2,
+        }).format(grand);
+      } catch(e) { grandFmt = String(grand.toFixed(2)); }
+
+      const savedDate = d.savedAt ? new Date(d.savedAt).toLocaleDateString() : '';
+
+      return `
+        <div class="draft-card" data-id="${d.id}" title="Load draft">
+          <div class="dc-num">${esc(d.invNumber) || 'Draft'}</div>
+          <div class="dc-client">${esc(d.toName) || 'No client'}</div>
+          <div class="dc-amount">${grandFmt}</div>
+          <div class="dc-date">${savedDate}</div>
+          <button class="dc-del" data-del="${d.id}" title="Delete">&times;</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  /* ── Toast ── */
+  function toast(msg, type = '') {
+    const container = $('toast-container');
+    const el = document.createElement('div');
+    el.className = 'toast' + (type ? ' ' + type : '');
+    el.textContent = msg;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 2600);
+  }
+
+  /* ── Theme toggle ── */
+  function initTheme() {
+    const saved = localStorage.getItem('invoicegen_theme');
+    if (saved) document.documentElement.setAttribute('data-theme', saved);
+  }
+
+  $('theme-toggle').addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('invoicegen_theme', next);
+  });
+
+  /* ── Event wiring ── */
+
+  // Template pills
+  document.querySelectorAll('.pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      state.template = pill.dataset.tpl;
+      renderPreview();
+    });
+  });
+
+  // Add row
+  $('btn-add-row').addEventListener('click', () => addRow());
+
+  // Items table: delegate input + remove
+  itemsBody.addEventListener('input', e => {
+    const input = e.target.closest('input[data-id]');
+    if (!input) return;
+    updateRow(+input.dataset.id, input.dataset.field, input.value);
+  });
+
+  itemsBody.addEventListener('click', e => {
+    const btn = e.target.closest('.btn-remove-row');
+    if (!btn) return;
+    removeRow(+btn.dataset.id);
+  });
+
+  // Tax rate
+  $('tax-rate').addEventListener('input', () => {
+    updateTotals();
+    renderPreview();
+  });
+
+  // Currency
+  $('inv-currency').addEventListener('change', () => {
+    state.currency = $('inv-currency').value;
+    renderItems(true);
+    renderPreview();
+  });
+
+  // All form inputs trigger preview
+  const formFields = ['from-name','from-address','from-email','from-phone',
+    'to-name','to-address','to-email','inv-number','inv-date','inv-due','inv-notes'];
+
+  formFields.forEach(id => {
+    const el = $(id);
+    if (el) {
+      el.addEventListener('input', renderPreview);
+      el.addEventListener('change', renderPreview);
+    }
+  });
+
+  // Buttons
+  $('btn-sample').addEventListener('click', loadSample);
+  $('btn-save').addEventListener('click', saveDraft);
+  $('btn-print').addEventListener('click', () => window.print());
+  $('btn-clear-drafts').addEventListener('click', () => {
+    if (confirm('Clear all saved drafts?')) {
+      localStorage.removeItem(DRAFT_KEY);
+      renderDrafts();
+      toast('All drafts cleared');
+    }
+  });
+
+  // Drafts grid: load or delete
+  $('drafts-grid').addEventListener('click', e => {
+    const delBtn = e.target.closest('[data-del]');
+    if (delBtn) {
+      e.stopPropagation();
+      deleteDraft(delBtn.dataset.del);
+      return;
+    }
+    const card = e.target.closest('.draft-card[data-id]');
+    if (card) {
+      const drafts = loadDrafts();
+      const data = drafts.find(d => d.id === +card.dataset.id);
+      if (data) {
+        applyFormData(data);
+        toast('Draft loaded!', 'success');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  });
+
+  /* ── Init ── */
+  initTheme();
+  initDates();
+  addRow('', 1, 0);
+  renderDrafts();
+  renderPreview();
+
+})();
+</script>
+</body>
+</html>
