@@ -909,6 +909,78 @@
 </style>
 </head>
 <body>
+<style>
+/* Floating Navigation */
+.micro-nav-back, .micro-nav-home {
+  position: fixed;
+  top: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(20,20,23,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  text-decoration: none;
+  color: #e0e0e0;
+  cursor: pointer;
+  z-index: 9999;
+  transition: background 0.2s, border-color 0.2s;
+}
+.micro-nav-back { left: 16px; }
+.micro-nav-home { right: 16px; }
+.micro-nav-back:hover, .micro-nav-home:hover {
+  background: rgba(40,40,46,0.95);
+  border-color: rgba(255,255,255,0.2);
+}
+.micro-float-bar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: rgba(20,20,23,0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 999px;
+  z-index: 9999;
+  transition: opacity 0.3s;
+}
+.micro-float-bar a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+}
+.micro-float-bar a:hover { opacity: 0.85; }
+.micro-float-bmc { background: #ffdd00; color: #0d0d0f; }
+.micro-float-feedback { background: #58a6ff; color: #fff; }
+@media (max-width: 400px) {
+  .micro-float-bar a { padding: 6px 12px; font-size: 0.75rem; }
+  .micro-nav-back, .micro-nav-home { width: 36px; height: 36px; font-size: 16px; }
+}
+</style>
+<!-- Floating Navigation -->
+<button class="micro-nav-back" onclick="history.back()" aria-label="Go back">←</button>
+<a class="micro-nav-home" href="index.html" aria-label="Home">🏠</a>
+<div class="micro-float-bar">
+  <a class="micro-float-bmc" href="https://buymeacoffee.com/beelinkfarm" target="_blank" rel="noopener">☕ Buy me a coffee</a>
+  <a class="micro-float-feedback" href="https://github.com/beelinkfarm/micro-tools/issues/new?title=[CardPreview]%20&labels=cardpreview&body=Description%3A%20" target="_blank" rel="noopener">💬 Feedback</a>
+</div>
 <div class="orb orb-1"></div>
 <div class="orb orb-2"></div>
 <div class="orb orb-3"></div>
@@ -1180,8 +1252,6 @@
       100% client-side, no data sent anywhere &nbsp;·&nbsp;
       <a href="https://ogp.me" target="_blank" rel="noopener">OGP Spec</a> &nbsp;·&nbsp;
       <a href="https://developer.twitter.com/en/docs/twitter-for-websites/cards" target="_blank" rel="noopener">Twitter Cards</a> &nbsp;·&nbsp;
-      <a href="https://buymeacoffee.com/beelinkfarm" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;padding:4px 12px;background:#ffdd00;color:#0d0d0f;font-weight:700;border-radius:6px;text-decoration:none;">☕ Buy me a coffee</a> &nbsp;
-      <a href="https://github.com/beelinkfarm/micro-tools/issues/new?title=[CardPreview]%20&labels=cardpreview&body=Description%3A%20" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;padding:4px 12px;background:#58a6ff;color:#fff;font-weight:700;border-radius:6px;text-decoration:none;">💬 Feedback</a>
     </p>
   </footer>
 </div>
