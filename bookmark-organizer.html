@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Bookmark Organizer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --bg-2: #111118;
+    --bg-3: #1a1a24;
+    --bg-4: #22222e;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.14);
+    --text: #f0f0f8;
+    --text-2: #9898b0;
+    --text-3: #5a5a72;
+    --accent: #6c63ff;
+    --accent-2: #ff6b9d;
+    --accent-3: #00d4aa;
+    --accent-4: #ffb347;
+    --gradient: linear-gradient(135deg, #6c63ff 0%, #ff6b9d 100%);
+    --gradient-2: linear-gradient(135deg, #00d4aa 0%, #6c63ff 100%);
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+    --shadow-lg: 0 20px 60px rgba(0,0,0,0.6);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --radius-xs: 6px;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  [data-theme="light"] {
+    --bg: #f4f4fa;
+    --bg-2: #ffffff;
+    --bg-3: #eeeef8;
+    --bg-4: #e4e4f0;
+    --border: rgba(0,0,0,0.08);
+    --border-hover: rgba(0,0,0,0.15);
+    --text: #0f0f1a;
+    --text-2: #4a4a6a;
+    --text-3: #9898b8;
+    --shadow: 0 8px 32px rgba(108,99,255,0.08);
+    --shadow-lg: 0 20px 60px rgba(108,99,255,0.12);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+    transition: background var(--transition), color var(--transition);
+    overflow-x: hidden;
+  }
+
+  /* ── Background noise texture ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── Ambient orbs ── */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.12;
+    pointer-events: none;
+    z-index: 0;
+    animation: drift 20s ease-in-out infinite alternate;
+  }
+  .orb-1 { width: 600px; height: 600px; background: #6c63ff; top: -200px; left: -100px; }
+  .orb-2 { width: 500px; height: 500px; background: #ff6b9d; bottom: -150px; right: -100px; animation-delay: -8s; }
+  .orb-3 { width: 400px; height: 400px; background: #00d4aa; top: 40%; left: 50%; transform: translate(-50%,-50%); animation-delay: -4s; }
+
+  [data-theme="light"] .orb { opacity: 0.06; }
+
+  @keyframes drift {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(30px, 20px) scale(1.05); }
+  }
+
+  /* ── Layout ── */
+  .app { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 24px 80px; }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--gradient);
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    box-shadow: 0 4px 20px rgba(108,99,255,0.4);
+  }
+
+  .logo-text {
+    font-family: var(--font-head);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text span {
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-actions { display: flex; align-items: center; gap: 12px; }
+
+  .btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border);
+    background: var(--bg-3);
+    color: var(--text-2);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    transition: all var(--transition);
+  }
+
+  .btn-icon:hover {
+    border-color: var(--border-hover);
+    color: var(--text);
+    background: var(--bg-4);
+    transform: translateY(-1px);
+  }
+
+  /* ── Hero upload zone ── */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 64px 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    background: var(--bg-2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .upload-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gradient);
+    opacity: 0;
+    transition: opacity var(--transition);
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg), 0 0 0 1px var(--accent);
+  }
+
+  .upload-zone:hover::before, .upload-zone.drag-over::before { opacity: 0.04; }
+
+  .upload-zone.drag-over { border-style: solid; }
+
+  .upload-content { position: relative; z-index: 1; }
+
+  .upload-icon {
+    font-size: 56px;
+    margin-bottom: 16px;
+    display: block;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .upload-title {
+    font-family: var(--font-head);
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  .upload-sub {
+    color: var(--text-2);
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--gradient);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 12px 24px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+    box-shadow: 0 4px 20px rgba(108,99,255,0.35);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(108,99,255,0.5);
+  }
+
+  .upload-hint {
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--text-3);
+  }
+
+  .upload-hint strong { color: var(--text-2); }
+
+  /* ── Progress ── */
+  .progress-wrap {
+    margin-top: 32px;
+    display: none;
+  }
+
+  .progress-wrap.visible { display: block; }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-2);
+    margin-bottom: 8px;
+  }
+
+  .progress-bar-track {
+    height: 6px;
+    background: var(--bg-4);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--gradient);
+    border-radius: 99px;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+
+  /* ── Dashboard ── */
+  #dashboard { display: none; }
+  #dashboard.visible { display: block; }
+
+  .dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .dashboard-title {
+    font-family: var(--font-head);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .dashboard-title span {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--text-2);
+    font-family: var(--font-body);
+    margin-left: 8px;
+  }
+
+  .dashboard-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-3);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 18px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+
+  .btn-outline:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(108,99,255,0.15);
+  }
+
+  /* ── Stats grid ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    transition: all var(--transition);
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--card-accent, var(--gradient));
+  }
+
+  .stat-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+  }
+
+  .stat-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .stat-value {
+    font-family: var(--font-head);
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: var(--text-2);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-sub {
+    font-size: 12px;
+    color: var(--text-3);
+    margin-top: 4px;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Main content grid ── */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 900px) {
+    .content-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .card-title {
+    font-family: var(--font-head);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title .badge {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: var(--bg-4);
+    color: var(--text-2);
+  }
+
+  /* ── Chart ── */
+  .chart-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  #pieChart {
+    max-width: 220px;
+    width: 100%;
+    border-radius: 50%;
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.3));
+  }
+
+  .chart-legend { width: 100%; }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: all var(--transition);
+    border-radius: 4px;
+    padding-inline: 4px;
+  }
+
+  .legend-item:last-child { border-bottom: none; }
+  .legend-item:hover { background: var(--bg-3); }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .legend-name {
+    flex: 1;
+    font-size: 13px;
+    margin-left: 8px;
+    color: var(--text);
+  }
+
+  .legend-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-2);
+    background: var(--bg-4);
+    padding: 2px 8px;
+    border-radius: 99px;
+  }
+
+  /* ── Search & Filter ── */
+  .search-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .search-input-wrap {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+
+  .search-input {
+    width: 100%;
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 16px 10px 40px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    transition: all var(--transition);
+    outline: none;
+  }
+
+  .search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-3);
+    font-size: 16px;
+    pointer-events: none;
+  }
+
+  .filter-select {
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+    transition: all var(--transition);
+  }
+
+  .filter-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+  }
+
+  /* ── Bookmarks list ── */
+  .bookmarks-wrap {
+    max-height: 480px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .bookmarks-wrap::-webkit-scrollbar { width: 4px; }
+  .bookmarks-wrap::-webkit-scrollbar-track { background: transparent; }
+  .bookmarks-wrap::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: 99px; }
+
+  .bookmark-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    transition: all var(--transition);
+    cursor: pointer;
+    margin-bottom: 4px;
+  }
+
+  .bookmark-item:hover {
+    background: var(--bg-3);
+    border-color: var(--border);
+  }
+
+  .bookmark-favicon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--bg-4);
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .bookmark-favicon img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+  }
+
+  .bookmark-info { flex: 1; min-width: 0; }
+
+  .bookmark-title {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .bookmark-url {
+    font-size: 12px;
+    color: var(--text-3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bookmark-tags {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 99px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .tag-dup {
+    background: rgba(255,107,157,0.15);
+    color: #ff6b9d;
+  }
+
+  .tag-dead {
+    background: rgba(255,100,100,0.15);
+    color: #ff6464;
+  }
+
+  /* ── Category chip colors ── */
+  .tag-cat { background: rgba(108,99,255,0.12); color: var(--accent); }
+
+  /* ── Duplicates section ── */
+  .dupe-group {
+    border: 1px solid rgba(255,107,157,0.2);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    margin-bottom: 10px;
+    background: rgba(255,107,157,0.04);
+  }
+
+  .dupe-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ff6b9d;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .dupe-item {
+    font-size: 12px;
+    color: var(--text-2);
+    padding: 3px 0;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dupe-item:last-child { border-bottom: none; }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-3);
+  }
+
+  .empty-state .emoji { font-size: 40px; margin-bottom: 12px; display: block; }
+  .empty-state p { font-size: 14px; }
+
+  /* ── Footer ── */
+  footer {
+    margin-top: 60px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .footer-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .badge-ai {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 99px;
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-2);
+    letter-spacing: 0.3px;
+  }
+
+  .badge-ai::before {
+    content: '✦';
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .footer-copy {
+    font-size: 13px;
+    color: var(--text-3);
+  }
+
+  .donate-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, #ffb347, #ff8c42);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all var(--transition);
+    box-shadow: 0 4px 16px rgba(255,140,66,0.3);
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+  }
+
+  .donate-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255,140,66,0.45);
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-width: 320px;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast .toast-icon { font-size: 18px; }
+
+  /* ── Loader ── */
+  .loader {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Category color chips ── */
+  .cat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .upload-title { font-size: 22px; }
+    header { padding: 20px 0 28px; margin-bottom: 32px; }
+    .dashboard-header { flex-direction: column; align-items: flex-start; }
+  }
+
+  /* ── Pagination dots ── */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .page-btn {
+    min-width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    padding: 0 8px;
+  }
+
+  .page-btn:hover, .page-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .page-info {
+    font-size: 13px;
+    color: var(--text-3);
+  }
+
+  /* ── Scroll-to-top ── */
+  #scrollTop {
+    position: fixed;
+    bottom: 32px;
+    left: 32px;
+    width: 40px;
+    height: 40px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    color: var(--text-2);
+    transition: all var(--transition);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  #scrollTop.visible { opacity: 1; pointer-events: all; }
+  #scrollTop:hover { background: var(--bg-3); color: var(--text); transform: translateY(-2px); }
+
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🔖</div>
+      <div class="logo-text"><span>Bookmark</span> Organizer</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" id="themeToggle" title="Toggle theme" aria-label="Toggle dark/light mode">🌙</button>
+    </div>
+  </header>
+
+  <!-- Upload Zone -->
+  <section id="uploadSection">
+    <div class="upload-zone" id="dropZone" role="button" tabindex="0" aria-label="Drop bookmark file or click to upload">
+      <div class="upload-content">
+        <span class="upload-icon">📚</span>
+        <h2 class="upload-title">Drop your bookmarks here</h2>
+        <p class="upload-sub">Export from Chrome, Firefox, or Safari, then drag and drop</p>
+        <button class="btn-primary" id="selectFileBtn">
+          <span>📂</span> Choose File
+        </button>
+        <input type="file" id="fileInput" accept=".html,.htm" style="display:none" aria-label="Select bookmark file">
+        <p class="upload-hint">Supports <strong>Chrome</strong> · <strong>Firefox</strong> · <strong>Safari</strong> · <strong>Edge</strong> bookmark exports (.html)</p>
+      </div>
+
+      <div class="progress-wrap" id="progressWrap">
+        <div class="progress-label">
+          <span id="progressText">Parsing bookmarks…</span>
+          <span id="progressPct">0%</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dashboard -->
+  <section id="dashboard">
+
+    <div class="dashboard-header">
+      <div>
+        <h2 class="dashboard-title">Your Bookmarks <span id="fileNameLabel"></span></h2>
+      </div>
+      <div class="dashboard-actions">
+        <button class="btn-outline" id="exportJsonBtn">⬇ Export JSON</button>
+        <button class="btn-outline" id="exportHtmlBtn">⬇ Export HTML</button>
+        <button class="btn-outline" id="resetBtn">↺ New File</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <!-- Main Grid -->
+    <div class="content-grid">
+
+      <!-- Chart Panel -->
+      <div class="card" style="animation-delay:0.1s">
+        <div class="card-title">📊 Category Breakdown</div>
+        <div class="chart-container">
+          <canvas id="pieChart" width="220" height="220" aria-label="Category pie chart" role="img"></canvas>
+          <div class="chart-legend" id="chartLegend"></div>
+        </div>
+      </div>
+
+      <!-- Bookmarks Panel -->
+      <div class="card" style="animation-delay:0.15s">
+        <div class="card-title">
+          🔖 All Bookmarks
+          <span class="badge" id="visibleCount">0</span>
+        </div>
+        <div class="search-bar">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="search" class="search-input" id="searchInput" placeholder="Search titles or URLs…" aria-label="Search bookmarks">
+          </div>
+          <select class="filter-select" id="catFilter" aria-label="Filter by category">
+            <option value="all">All Categories</option>
+          </select>
+          <select class="filter-select" id="sortSelect" aria-label="Sort bookmarks">
+            <option value="default">Default Order</option>
+            <option value="alpha">A → Z</option>
+            <option value="domain">By Domain</option>
+            <option value="cat">By Category</option>
+          </select>
+        </div>
+        <div class="bookmarks-wrap" id="bookmarksList" role="list"></div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+
+    </div>
+
+    <!-- Duplicates Panel -->
+    <div class="card" id="dupesCard" style="animation-delay:0.2s; display:none; margin-bottom:24px;">
+      <div class="card-title">♊ Duplicate Bookmarks <span class="badge" id="dupeCount">0</span></div>
+      <div id="dupesList"></div>
+    </div>
+
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-left">
+      <span class="badge-ai">Made with AI</span>
+      <span class="footer-copy">Smart Bookmark Organizer — Free &amp; Open</span>
+    </div>
+    <a href="#donate" class="donate-btn" aria-label="Buy me a coffee" onclick="showToast('☕ Thank you! Donation link coming soon.','info'); return false;">
+      ☕ Buy Me a Coffee
+    </a>
+  </footer>
+
+</div>
+
+<!-- Scroll to top -->
+<button id="scrollTop" aria-label="Scroll to top" title="Scroll to top">↑</button>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="alert" aria-live="polite">
+  <span class="toast-icon" id="toastIcon"></span>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+/* ─────────────────────────────────────────────
+   THEME
+───────────────────────────────────────────── */
+const themeBtn = document.getElementById('themeToggle');
+let darkMode = true;
+
+function applyTheme(dark) {
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  themeBtn.textContent = dark ? '🌙' : '☀️';
+}
+
+applyTheme(true);
+
+themeBtn.addEventListener('click', () => {
+  darkMode = !darkMode;
+  applyTheme(darkMode);
+});
+
+/* ─────────────────────────────────────────────
+   SCROLL TO TOP
+───────────────────────────────────────────── */
+const scrollTopBtn = document.getElementById('scrollTop');
+window.addEventListener('scroll', () => {
+  scrollTopBtn.classList.toggle('visible', window.scrollY > 400);
+});
+scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+/* ─────────────────────────────────────────────
+   TOAST
+───────────────────────────────────────────── */
+let toastTimer;
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  const icons = { success: '✅', error: '❌', info: 'ℹ️', warn: '⚠️' };
+  document.getElementById('toastIcon').textContent = icons[type] || icons.info;
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* ─────────────────────────────────────────────
+   CATEGORY ENGINE
+───────────────────────────────────────────── */
+const CATEGORIES = [
+  {
+    id: 'dev',
+    label: 'Development',
+    emoji: '💻',
+    color: '#6c63ff',
+    keywords: ['github','gitlab','stackoverflow','npm','docker','kubernetes','aws','azure','gcp','cloud','api','git','code','dev','programming','linux','ubuntu','terminal','bash','python','javascript','typescript','react','vue','angular','node','rust','golang','java','c++','cpp','ruby','php','mysql','postgres','mongodb','redis','graphql','rest','json','yaml','vercel','netlify','heroku','digitalocean','firebase','supabase','planetscale','railway','render','replit','codepen','jsfiddle','codesandbox','vscode','jetbrains','intellij','xcode','android','ios','flutter','kotlin','swift'],
+  },
+  {
+    id: 'news',
+    label: 'News',
+    emoji: '📰',
+    color: '#ff9f43',
+    keywords: ['news','cnn','bbc','reuters','nytimes','guardian','washingtonpost','bloomberg','forbes','techcrunch','wired','verge','ars','arstechnica','hacker news','hackernews','reddit','medium','substack','newsletter','journal','times','post','herald','daily','press','media','telegraph'],
+  },
+  {
+    id: 'social',
+    label: 'Social',
+    emoji: '💬',
+    color: '#ff6b9d',
+    keywords: ['twitter','x.com','facebook','instagram','linkedin','tiktok','youtube','twitch','discord','slack','telegram','whatsapp','pinterest','snapchat','reddit','mastodon','threads','bluesky','social','community','forum','chat'],
+  },
+  {
+    id: 'shopping',
+    label: 'Shopping',
+    emoji: '🛍️',
+    color: '#00d4aa',
+    keywords: ['amazon','ebay','etsy','shopify','walmart','target','bestbuy','newegg','aliexpress','alibaba','shop','store','buy','cart','checkout','product','deal','coupon','discount','price','order','shipping','delivery'],
+  },
+  {
+    id: 'entertainment',
+    label: 'Entertainment',
+    emoji: '🎬',
+    color: '#ff6b6b',
+    keywords: ['netflix','hulu','disney','spotify','apple music','soundcloud','bandcamp','imdb','rottentomatoes','movie','film','show','series','tv','music','song','album','artist','game','gaming','steam','epic','itch.io','twitch','anime','manga','comic','book','novel'],
+  },
+  {
+    id: 'finance',
+    label: 'Finance',
+    emoji: '💰',
+    color: '#f9ca24',
+    keywords: ['bank','finance','invest','stock','crypto','bitcoin','ethereum','coinbase','binance','trading','forex','wallet','payment','paypal','stripe','venmo','cashapp','transfer','loan','mortgage','insurance','tax','accounting','budget','money','fund','portfolio','nasdaq','nyse'],
+  },
+  {
+    id: 'education',
+    label: 'Education',
+    emoji: '🎓',
+    color: '#a29bfe',
+    keywords: ['udemy','coursera','edx','khan','pluralsight','skillshare','learn','course','tutorial','lecture','university','college','school','edu','academy','study','research','science','math','history','language','course','lesson','mooc','certificate'],
+  },
+  {
+    id: 'productivity',
+    label: 'Productivity',
+    emoji: '⚡',
+    color: '#74b9ff',
+    keywords: ['notion','obsidian','roam','logseq','evernote','onenote','todoist','asana','trello','jira','linear','monday','basecamp','airtable','coda','figma','sketch','miro','canva','loom','calendly','zoom','meet','teams','calendar','task','project','workflow','productivity','organize','notes','doc','sheet','spreadsheet','slides'],
+  },
+  {
+    id: 'reference',
+    label: 'Reference',
+    emoji: '📖',
+    color: '#fd79a8',
+    keywords: ['wikipedia','wiki','docs','documentation','reference','manual','guide','spec','rfc','mdn','devdocs','readthedocs','gitbook','dictionary','thesaurus','encyclopedia','archive','wayback','scholar','paper','article','blog','post'],
+  },
+  {
+    id: 'tech',
+    label: 'Tech',
+    emoji: '🤖',
+    color: '#55efc4',
+    keywords: ['ai','openai','anthropic','google','microsoft','apple','meta','nvidia','intel','amd','qualcomm','samsung','sony','lg','gadget','hardware','software','startup','product','launch','release','tool','saas','platform','app','web','mobile','iot','ar','vr'],
+  },
+  {
+    id: 'other',
+    label: 'Other',
+    emoji: '📌',
+    color: '#b2bec3',
+    keywords: [],
+  },
+];
+
+function categorize(title, url) {
+  const hay = (title + ' ' + url).toLowerCase();
+  for (const cat of CATEGORIES) {
+    if (cat.id === 'other') continue;
+    if (cat.keywords.some(k => hay.includes(k))) return cat;
+  }
+  return CATEGORIES.find(c => c.id === 'other');
+}
+
+/* dead domain heuristics – very simple */
+const DEAD_DOMAINS = [
+  'myspace.com','friendster.com','bebo.com','vine.co','google+',
+  'plus.google.com','orkut.com','del.icio.us','digg.com','stumbleupon.com',
+  'geocities','altavista.com','netscape.com','aim.com','picasa.google',
+];
+
+function isLikelyDead(url) {
+  const u = url.toLowerCase();
+  return DEAD_DOMAINS.some(d => u.includes(d));
+}
+
+/* ─────────────────────────────────────────────
+   BOOKMARK PARSER
+───────────────────────────────────────────── */
+function parseBookmarkHTML(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const anchors = doc.querySelectorAll('a');
+  const bookmarks = [];
+
+  anchors.forEach((a, i) => {
+    const href = a.href || '';
+    const title = (a.textContent || '').trim() || href;
+    if (!href || href === 'about:blank' || href.startsWith('place:')) return;
+    const cat = categorize(title, href);
+    bookmarks.push({
+      id: i,
+      title,
+      url: href,
+      domain: extractDomain(href),
+      category: cat,
+      isDead: isLikelyDead(href),
+      addDate: a.getAttribute('add_date') || null,
+    });
+  });
+
+  return bookmarks;
+}
+
+function extractDomain(url) {
+  try {
+    const u = new URL(url);
+    return u.hostname.replace(/^www\./, '');
+  } catch {
+    return url;
+  }
+}
+
+function findDuplicates(bookmarks) {
+  const urlMap = {};
+  bookmarks.forEach(b => {
+    const key = b.url.replace(/\/$/, '').toLowerCase();
+    if (!urlMap[key]) urlMap[key] = [];
+    urlMap[key].push(b);
+  });
+  return Object.values(urlMap).filter(g => g.length > 1);
+}
+
+/* ─────────────────────────────────────────────
+   FILE UPLOAD
+───────────────────────────────────────────── */
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const selectFileBtn = document.getElementById('selectFileBtn');
+
+selectFileBtn.addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
+dropZone.addEventListener('click', e => { if (e.target === dropZone || e.target.classList.contains('upload-content') || e.target.classList.contains('upload-icon') || e.target.classList.contains('upload-title') || e.target.classList.contains('upload-sub') || e.target.classList.contains('upload-hint')) fileInput.click(); });
+dropZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
+
+dropZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropZone.classList.add('drag-over');
+});
+
+dropZone.addEventListener('dragleave', e => {
+  if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove('drag-over');
+});
+
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) handleFile(fileInput.files[0]);
+});
+
+function handleFile(file) {
+  if (!file.name.match(/\.html?$/i)) {
+    showToast('Please upload an HTML bookmark file.', 'error');
+    return;
+  }
+
+  const progressWrap = document.getElementById('progressWrap');
+  const progressFill = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+  const progressPct = document.getElementById('progressPct');
+
+  progressWrap.classList.add('visible');
+
+  let pct = 0;
+  const interval = setInterval(() => {
+    pct = Math.min(pct + Math.random() * 12, 85);
+    progressFill.style.width = pct + '%';
+    progressPct.textContent = Math.round(pct) + '%';
+  }, 80);
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    clearInterval(interval);
+    progressFill.style.width = '100%';
+    progressPct.textContent = '100%';
+    progressText.textContent = 'Done!';
+
+    setTimeout(() => {
+      const bookmarks = parseBookmarkHTML(e.target.result);
+      document.getElementById('fileNameLabel').textContent = file.name;
+      renderDashboard(bookmarks);
+      document.getElementById('uploadSection').style.display = 'none';
+      const dash = document.getElementById('dashboard');
+      dash.classList.add('visible');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showToast(`Loaded ${bookmarks.length} bookmarks!`, 'success');
+    }, 400);
+  };
+  reader.readAsText(file);
+}
+
+/* ─────────────────────────────────────────────
+   RENDER DASHBOARD
+───────────────────────────────────────────── */
+let _allBookmarks = [];
+let _filtered = [];
+let _currentPage = 1;
+const PAGE_SIZE = 25;
+
+function renderDashboard(bookmarks) {
+  _allBookmarks = bookmarks;
+  renderStats(bookmarks);
+  renderChart(bookmarks);
+  populateFilter(bookmarks);
+  applyFilters();
+  renderDuplicates(bookmarks);
+}
+
+function renderStats(bookmarks) {
+  const total = bookmarks.length;
+  const dupes = findDuplicates(bookmarks).reduce((a, g) => a + g.length - 1, 0);
+  const dead = bookmarks.filter(b => b.isDead).length;
+  const cats = new Set(bookmarks.map(b => b.category.id)).size;
+
+  const grid = document.getElementById('statsGrid');
+  const stats = [
+    { icon: '🔖', value: total, label: 'Total Bookmarks', sub: 'across all folders', accent: 'var(--gradient)' },
+    { icon: '🗂️', value: cats, label: 'Categories', sub: 'auto-classified', accent: 'var(--gradient-2)' },
+    { icon: '♊', value: dupes, label: 'Duplicates', sub: dupes > 0 ? 'found — clean up!' : 'none found', accent: 'linear-gradient(135deg,#ff6b9d,#ff8c42)' },
+    { icon: '💀', value: dead, label: 'Likely Dead', sub: dead > 0 ? 'outdated domains' : 'all look alive', accent: 'linear-gradient(135deg,#ff6464,#ff9f43)' },
+  ];
+
+  grid.innerHTML = stats.map((s, i) => `
+    <div class="stat-card" style="--card-accent:${s.accent}; animation-delay:${i * 0.07}s">
+      <span class="stat-icon">${s.icon}</span>
+      <div class="stat-value">${s.value.toLocaleString()}</div>
+      <div class="stat-label">${s.label}</div>
+      <div class="stat-sub">${s.sub}</div>
+    </div>
+  `).join('');
+}
+
+/* ─────────────────────────────────────────────
+   PIE CHART
+───────────────────────────────────────────── */
+function renderChart(bookmarks) {
+  const canvas = document.getElementById('pieChart');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+  const R = Math.min(W, H) / 2 - 10;
+  const INNER = R * 0.55;
+
+  // Count per category
+  const counts = {};
+  bookmarks.forEach(b => {
+    counts[b.category.id] = (counts[b.category.id] || 0) + 1;
+  });
+
+  const total = bookmarks.length;
+  const slices = CATEGORIES.filter(c => counts[c.id]).map(c => ({
+    cat: c,
+    count: counts[c.id] || 0,
+    pct: (counts[c.id] || 0) / total,
+  })).sort((a, b) => b.count - a.count);
+
+  ctx.clearRect(0, 0, W, H);
+
+  let startAngle = -Math.PI / 2;
+  const sliceData = [];
+
+  slices.forEach((s, i) => {
+    const angle = s.pct * 2 * Math.PI;
+    const midAngle = startAngle + angle / 2;
+    const explode = 4;
+    const ox = Math.cos(midAngle) * explode;
+    const oy = Math.sin(midAngle) * explode;
+
+    ctx.beginPath();
+    ctx.moveTo(cx + ox, cy + oy);
+    ctx.arc(cx + ox, cy + oy, R, startAngle, startAngle + angle);
+    ctx.lineTo(cx + ox, cy + oy);
+    ctx.closePath();
+    ctx.fillStyle = s.cat.color;
+    ctx.fill();
+    ctx.strokeStyle = darkMode ? '#0a0a0f' : '#f4f4fa';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    sliceData.push({ startAngle, endAngle: startAngle + angle, ox, oy, cat: s.cat });
+    startAngle += angle;
+  });
+
+  // Donut hole
+  ctx.beginPath();
+  ctx.arc(cx, cy, INNER, 0, 2 * Math.PI);
+  ctx.fillStyle = darkMode ? '#111118' : '#ffffff';
+  ctx.fill();
+
+  // Center label
+  ctx.fillStyle = darkMode ? '#f0f0f8' : '#0f0f1a';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = `bold 22px Syne, sans-serif`;
+  ctx.fillText(total.toLocaleString(), cx, cy - 8);
+  ctx.font = `500 11px DM Sans, sans-serif`;
+  ctx.fillStyle = darkMode ? '#9898b0' : '#4a4a6a';
+  ctx.fillText('bookmarks', cx, cy + 12);
+
+  // Legend
+  const legend = document.getElementById('chartLegend');
+  legend.innerHTML = slices.map(s => `
+    <div class="legend-item" data-cat="${s.cat.id}" role="button" tabindex="0" aria-label="Filter by ${s.cat.label}">
+      <div class="legend-dot" style="background:${s.cat.color}"></div>
+      <span class="legend-name">${s.cat.emoji} ${s.cat.label}</span>
+      <span class="legend-count">${s.count}</span>
+    </div>
+  `).join('');
+
+  legend.querySelectorAll('.legend-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const catId = el.dataset.cat;
+      const sel = document.getElementById('catFilter');
+      sel.value = catId;
+      applyFilters();
+    });
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') el.click(); });
+  });
+}
+
+/* ─────────────────────────────────────────────
+   FILTER / SEARCH
+───────────────────────────────────────────── */
+function populateFilter(bookmarks) {
+  const sel = document.getElementById('catFilter');
+  sel.innerHTML = '<option value="all">All Categories</option>';
+  const cats = [...new Set(bookmarks.map(b => b.category.id))];
+  CATEGORIES.filter(c => cats.includes(c.id)).forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = `${c.emoji} ${c.label}`;
+    sel.appendChild(opt);
+  });
+}
+
+document.getElementById('searchInput').addEventListener('input', () => { _currentPage = 1; applyFilters(); });
+document.getElementById('catFilter').addEventListener('change', () => { _currentPage = 1; applyFilters(); });
+document.getElementById('sortSelect').addEventListener('change', () => { _currentPage = 1; applyFilters(); });
+
+function applyFilters() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const cat = document.getElementById('catFilter').value;
+  const sort = document.getElementById('sortSelect').value;
+
+  let filtered = _allBookmarks.filter(b => {
+    const matchQ = !q || b.title.toLowerCase().includes(q) || b.url.toLowerCase().includes(q);
+    const matchCat = cat === 'all' || b.category.id === cat;
+    return matchQ && matchCat;
+  });
+
+  if (sort === 'alpha') filtered.sort((a, b) => a.title.localeCompare(b.title));
+  else if (sort === 'domain') filtered.sort((a, b) => a.domain.localeCompare(b.domain));
+  else if (sort === 'cat') filtered.sort((a, b) => a.category.label.localeCompare(b.category.label));
+
+  _filtered = filtered;
+  renderBookmarksList();
+}
+
+/* ─────────────────────────────────────────────
+   BOOKMARKS LIST
+───────────────────────────────────────────── */
+function renderBookmarksList() {
+  const list = document.getElementById('bookmarksList');
+  const countBadge = document.getElementById('visibleCount');
+
+  countBadge.textContent = _filtered.length;
+
+  if (_filtered.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <span class="emoji">🔍</span>
+        <p>No bookmarks match your search.</p>
+      </div>`;
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+
+  const totalPages = Math.ceil(_filtered.length / PAGE_SIZE);
+  _currentPage = Math.min(_currentPage, totalPages);
+  const start = (_currentPage - 1) * PAGE_SIZE;
+  const page = _filtered.slice(start, start + PAGE_SIZE);
+
+  list.innerHTML = page.map(b => {
+    const domain = b.domain;
+    const faviconUrl = `https://www.google.com/s2/favicons?sz=32&domain_url=${encodeURIComponent(b.url)}`;
+    const tags = [];
+    if (b.isDead) tags.push('<span class="tag tag-dead">Dead?</span>');
+    // check if duplicate
+    const isDupe = _allBookmarks.filter(x => x.url.replace(/\/$/,'').toLowerCase() === b.url.replace(/\/$/,'').toLowerCase()).length > 1;
+    if (isDupe) tags.push('<span class="tag tag-dup">Duplicate</span>');
+    tags.push(`<span class="tag tag-cat">${b.category.emoji} ${b.category.label}</span>`);
+
+    return `
+      <div class="bookmark-item" role="listitem" tabindex="0"
+           onclick="window.open('${escapeAttr(b.url)}','_blank','noopener')"
+           onkeydown="if(event.key==='Enter')window.open('${escapeAttr(b.url)}','_blank','noopener')"
+           title="${escapeAttr(b.title)}">
+        <div class="bookmark-favicon">
+          <img src="${faviconUrl}" alt="" width="16" height="16" loading="lazy" onerror="this.style.display='none';this.parentElement.textContent='🔗'">
+        </div>
+        <div class="bookmark-info">
+          <div class="bookmark-title">${escapeHTML(b.title)}</div>
+          <div class="bookmark-url">${escapeHTML(domain)}</div>
+          <div class="bookmark-tags">${tags.join('')}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+  const pag = document.getElementById('pagination');
+  if (totalPages <= 1) { pag.innerHTML = ''; return; }
+
+  const cp = _currentPage;
+  let html = '';
+
+  // Prev
+  html += `<button class="page-btn" ${cp === 1 ? 'disabled' : ''} onclick="goPage(${cp - 1})">‹</button>`;
+
+  // Pages (window of 5)
+  let start = Math.max(1, cp - 2);
+  let end = Math.min(totalPages, start + 4);
+  if (end - start < 4) start = Math.max(1, end - 4);
+
+  if (start > 1) html += `<button class="page-btn" onclick="goPage(1)">1</button>${start > 2 ? '<span class="page-info">…</span>' : ''}`;
+
+  for (let i = start; i <= end; i++) {
+    html += `<button class="page-btn ${i === cp ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+  }
+
+  if (end < totalPages) html += `${end < totalPages - 1 ? '<span class="page-info">…</span>' : ''}<button class="page-btn" onclick="goPage(${totalPages})">${totalPages}</button>`;
+
+  html += `<button class="page-btn" ${cp === totalPages ? 'disabled' : ''} onclick="goPage(${cp + 1})">›</button>`;
+  html += `<span class="page-info">${_filtered.length} results</span>`;
+
+  pag.innerHTML = html;
+}
+
+function goPage(n) {
+  _currentPage = n;
+  renderBookmarksList();
+  document.getElementById('bookmarksList').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/* ─────────────────────────────────────────────
+   DUPLICATES
+───────────────────────────────────────────── */
+function renderDuplicates(bookmarks) {
+  const dupeGroups = findDuplicates(bookmarks);
+  const card = document.getElementById('dupesCard');
+  const list = document.getElementById('dupesList');
+  const badge = document.getElementById('dupeCount');
+
+  if (dupeGroups.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+
+  badge.textContent = dupeGroups.length + ' groups';
+  card.style.display = 'block';
+
+  list.innerHTML = dupeGroups.slice(0, 20).map(group => `
+    <div class="dupe-group">
+      <div class="dupe-title">♊ ${group.length} copies — "${escapeHTML(group[0].title.slice(0, 60))}"</div>
+      ${group.map(b => `<div class="dupe-item" title="${escapeAttr(b.url)}">${escapeHTML(b.url)}</div>`).join('')}
+    </div>
+  `).join('');
+
+  if (dupeGroups.length > 20) {
+    list.innerHTML += `<p style="color:var(--text-3);font-size:13px;text-align:center;padding:8px">+ ${dupeGroups.length - 20} more duplicate groups</p>`;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   EXPORT
+───────────────────────────────────────────── */
+document.getElementById('exportJsonBtn').addEventListener('click', () => {
+  const grouped = {};
+  _allBookmarks.forEach(b => {
+    const cat = b.category.label;
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push({ title: b.title, url: b.url, domain: b.domain, isDead: b.isDead });
+  });
+
+  const blob = new Blob([JSON.stringify(grouped, null, 2)], { type: 'application/json' });
+  downloadBlob(blob, 'bookmarks-organized.json');
+  showToast('Exported as JSON!', 'success');
+});
+
+document.getElementById('exportHtmlBtn').addEventListener('click', () => {
+  const grouped = {};
+  _allBookmarks.forEach(b => {
+    const cat = b.category.label;
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(b);
+  });
+
+  let html = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<!-- This is an automatically generated file. -->
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Bookmarks</TITLE>
+<H1>Bookmarks</H1>
+<DL><p>
+`;
+
+  Object.entries(grouped).forEach(([cat, items]) => {
+    html += `    <DT><H3>${cat}</H3>\n    <DL><p>\n`;
+    items.forEach(b => {
+      html += `        <DT><A HREF="${escapeAttr(b.url)}">${escapeHTML(b.title)}</A>\n`;
+    });
+    html += `    </DL><p>\n`;
+  });
+
+  html += `</DL><p>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  downloadBlob(blob, 'bookmarks-organized.html');
+  showToast('Exported as HTML!', 'success');
+});
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ─────────────────────────────────────────────
+   RESET
+───────────────────────────────────────────── */
+document.getElementById('resetBtn').addEventListener('click', () => {
+  _allBookmarks = [];
+  _filtered = [];
+  document.getElementById('dashboard').classList.remove('visible');
+  document.getElementById('uploadSection').style.display = '';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('progressWrap').classList.remove('visible');
+  document.getElementById('progressFill').style.width = '0%';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  showToast('Ready for a new file.', 'info');
+});
+
+/* ─────────────────────────────────────────────
+   UTILS
+───────────────────────────────────────────── */
+function escapeHTML(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function escapeAttr(str) {
+  return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/* ─────────────────────────────────────────────
+   DEMO MODE — load sample data if no file
+───────────────────────────────────────────── */
+// Optional: enable demo button
+const demoData = [
+  { title: 'GitHub', url: 'https://github.com', addDate: null },
+  { title: 'Stack Overflow', url: 'https://stackoverflow.com', addDate: null },
+  { title: 'MDN Web Docs', url: 'https://developer.mozilla.org', addDate: null },
+  { title: 'Hacker News', url: 'https://news.ycombinator.com', addDate: null },
+  { title: 'The Verge', url: 'https://theverge.com', addDate: null },
+  { title: 'TechCrunch', url: 'https://techcrunch.com', addDate: null },
+  { title: 'Twitter', url: 'https://twitter.com', addDate: null },
+  { title: 'LinkedIn', url: 'https://linkedin.com', addDate: null },
+  { title: 'YouTube', url: 'https://youtube.com', addDate: null },
+  { title: 'Netflix', url: 'https://netflix.com', addDate: null },
+  { title: 'Amazon', url: 'https://amazon.com', addDate: null },
+  { title: 'Spotify', url: 'https://spotify.com', addDate: null },
+  { title: 'Notion', url: 'https://notion.so', addDate: null },
+  { title: 'Figma', url: 'https://figma.com', addDate: null },
+  { title: 'Vercel', url: 'https://vercel.com', addDate: null },
+  { title: 'Docker Hub', url: 'https://hub.docker.com', addDate: null },
+  { title: 'Wikipedia', url: 'https://wikipedia.org', addDate: null },
+  { title: 'Coursera', url: 'https://coursera.org', addDate: null },
+  { title: 'Khan Academy', url: 'https://khanacademy.org', addDate: null },
+  { title: 'Reddit', url: 'https://reddit.com', addDate: null },
+  { title: 'GitHub', url: 'https://github.com', addDate: null }, // duplicate
+  { title: 'Myspace (Old)', url: 'https://myspace.com/profile', addDate: null }, // dead
+  { title: 'Binance', url: 'https://binance.com', addDate: null },
+  { title: 'Coinbase', url: 'https://coinbase.com', addDate: null },
+  { title: 'Asana', url: 'https://asana.com', addDate: null },
+  { title: 'Trello', url: 'https://trello.com', addDate: null },
+  { title: 'Discord', url: 'https://discord.com', addDate: null },
+  { title: 'Steam', url: 'https://store.steampowered.com', addDate: null },
+  { title: 'IMDB', url: 'https://imdb.com', addDate: null },
+  { title: 'NYTimes', url: 'https://nytimes.com', addDate: null },
+];
+
+// Insert "Try Demo" button
+const demoBtn = document.createElement('button');
+demoBtn.className = 'btn-outline';
+demoBtn.style.cssText = 'margin-top:20px; display:inline-flex; align-items:center; gap:6px;';
+demoBtn.innerHTML = '✨ Try with Demo Data';
+demoBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  const bm = demoData.map((d, i) => {
+    const cat = categorize(d.title, d.url);
+    return {
+      id: i,
+      title: d.title,
+      url: d.url,
+      domain: extractDomain(d.url),
+      category: cat,
+      isDead: isLikelyDead(d.url),
+      addDate: null,
+    };
+  });
+  document.getElementById('fileNameLabel').textContent = 'demo-bookmarks.html';
+  renderDashboard(bm);
+  document.getElementById('uploadSection').style.display = 'none';
+  document.getElementById('dashboard').classList.add('visible');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  showToast('Loaded 30 demo bookmarks!', 'success');
+});
+
+document.querySelector('.upload-content').appendChild(demoBtn);
+
+</script>
+</body>
+</html>

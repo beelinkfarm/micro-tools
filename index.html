@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MicroTools - Free AI-Powered Micro Utilities</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --accent2: #3fb950;
+      --grad1: #58a6ff;
+      --grad2: #bc8cff;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 80px 24px 64px;
+      background: radial-gradient(ellipse at 50% 0%, rgba(88,166,255,0.12) 0%, transparent 70%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(88,166,255,0.1);
+      border: 1px solid rgba(88,166,255,0.3);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--grad1), var(--grad2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* Tools grid */
+    .tools {
+      max-width: 960px;
+      margin: 64px auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+    }
+
+    .card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .icon-blue  { background: rgba(88,166,255,0.15); }
+    .icon-green { background: rgba(63,185,80,0.15); }
+    .icon-purple{ background: rgba(188,140,255,0.15); }
+
+    .card h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .card p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      flex: 1;
+    }
+
+    .btn {
+      display: inline-block;
+      text-align: center;
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-decoration: none;
+      background: var(--accent);
+      color: #0d1117;
+      transition: opacity 0.15s;
+    }
+
+    .btn:hover { opacity: 0.85; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .footer-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .coffee-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 16px;
+      border-radius: 8px;
+      background: #ffdd57;
+      color: #1a1a1a;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+
+    .coffee-btn:hover { opacity: 0.85; }
+
+    .ai-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="hero">
+    <div class="badge">✦ Free &amp; Open</div>
+    <h1>MicroTools</h1>
+    <p>Free AI-Powered Micro Utilities — small tools that do one thing well.</p>
+  </header>
+
+  <main class="tools">
+
+    <div class="card">
+      <div class="card-icon icon-blue">🔍</div>
+      <h2>LLM Scraper</h2>
+      <p>Convert any webpage to clean, LLM-ready markdown text. Strip noise, keep signal.</p>
+      <a class="btn" href="llm-scraper.html">Try it</a>
+    </div>
+
+    <div class="card">
+      <div class="card-icon icon-green">🔖</div>
+      <h2>Bookmark Organizer</h2>
+      <p>Auto-categorize and analyze your browser bookmarks. Bring order to the chaos.</p>
+      <a class="btn" href="bookmark-organizer.html">Try it</a>
+    </div>
+
+    <div class="card">
+      <div class="card-icon icon-purple">⚡</div>
+      <h2>MultiSearch</h2>
+      <p>Search across 5 engines simultaneously. Compare results, find more.</p>
+      <a class="btn" href="search-compare.html">Try it</a>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="footer-links">
+      <a class="coffee-btn" href="#" target="_blank" rel="noopener">☕ Buy Me a Coffee</a>
+    </div>
+    <div class="ai-badge">🤖 Made with AI</div>
+    <span>© 2025 MicroTools · All tools run in your browser</span>
+  </footer>
+
+</body>
+</html>

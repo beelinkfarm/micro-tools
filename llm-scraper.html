@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LLM Scraper — Web to LLM Text Converter</title>
+  <meta name="description" content="Convert any webpage into clean, LLM-ready markdown text. Strip noise, extract signal." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset & tokens ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent:        #f0a500;
+      --accent-dim:    #c07d00;
+      --accent-glow:   rgba(240, 165, 0, 0.18);
+      --accent-glow-s: rgba(240, 165, 0, 0.08);
+
+      --radius-sm: 6px;
+      --radius:    12px;
+      --radius-lg: 18px;
+
+      --font-head: 'Syne', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-body: 'Inter', sans-serif;
+
+      --transition: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="dark"] {
+      --bg:          #0d0d0f;
+      --bg-surface:  #141417;
+      --bg-raised:   #1c1c21;
+      --bg-overlay:  #242429;
+      --border:      rgba(255,255,255,0.07);
+      --border-mid:  rgba(255,255,255,0.12);
+      --text-primary:   #f0eff2;
+      --text-secondary: #9896a1;
+      --text-muted:     #5a5862;
+      --scrollbar-thumb: #2e2e36;
+    }
+
+    [data-theme="light"] {
+      --bg:          #f5f4f7;
+      --bg-surface:  #ffffff;
+      --bg-raised:   #f0eff4;
+      --bg-overlay:  #e8e7ed;
+      --border:      rgba(0,0,0,0.07);
+      --border-mid:  rgba(0,0,0,0.12);
+      --text-primary:   #141417;
+      --text-secondary: #5c5a68;
+      --text-muted:     #a09dae;
+      --scrollbar-thumb: #ccc;
+    }
+
+    /* ─── Base ───────────────────────────────────────────────── */
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+    /* ─── Layout ─────────────────────────────────────────────── */
+    .page-wrapper {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ─── Header ─────────────────────────────────────────────── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .header-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--accent);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-icon svg { display: block; }
+
+    .logo-text {
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .logo-text span { color: var(--accent); }
+
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+
+    .badge-ai {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      border: 1px solid var(--border-mid);
+      padding: 3px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.04em;
+    }
+
+    .theme-toggle {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      border: 1px solid var(--border-mid);
+      background: var(--bg-raised);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color var(--transition), background var(--transition), color var(--transition);
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-glow-s);
+    }
+
+    .icon-sun, .icon-moon { display: none; }
+    [data-theme="dark"]  .icon-moon { display: block; }
+    [data-theme="light"] .icon-sun  { display: block; }
+
+    /* ─── Hero ───────────────────────────────────────────────── */
+    .hero {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 56px 24px 40px;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .hero-title {
+      font-family: var(--font-head);
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+    }
+
+    .hero-title .line2 {
+      display: block;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 520px;
+      line-height: 1.7;
+    }
+
+    /* ─── Input card ─────────────────────────────────────────── */
+    .input-card {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px 32px;
+    }
+
+    .url-form {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .url-form:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow-s);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .url-input-wrap {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .url-prefix {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      padding: 0 12px;
+      pointer-events: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .url-input {
+      flex: 1;
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px 12px 0;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color var(--transition), background var(--transition);
+      min-width: 0;
+    }
+
+    .url-input-inner {
+      display: flex;
+      align-items: center;
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color var(--transition), background var(--transition);
+      flex: 1;
+    }
+
+    .url-input-inner:focus-within {
+      border-color: var(--accent-dim);
+      background: var(--bg-overlay);
+    }
+
+    .url-input-inner input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 12px 14px 12px 0;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      outline: none;
+      min-width: 0;
+    }
+
+    .url-input-inner input::placeholder { color: var(--text-muted); }
+
+    .btn-fetch {
+      padding: 0 24px;
+      background: var(--accent);
+      color: #0d0d0f;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font-head);
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+      flex-shrink: 0;
+    }
+
+    .btn-fetch:hover {
+      background: #ffc233;
+      box-shadow: 0 4px 20px var(--accent-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-fetch:active { transform: translateY(0); }
+
+    .btn-fetch:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .options-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .option-check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .option-check input[type="checkbox"] { display: none; }
+
+    .check-box {
+      width: 18px;
+      height: 18px;
+      border: 1px solid var(--border-mid);
+      border-radius: 4px;
+      background: var(--bg-raised);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color var(--transition), background var(--transition);
+      flex-shrink: 0;
+    }
+
+    .option-check input:checked ~ .check-box,
+    .option-check:has(input:checked) .check-box {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .check-mark {
+      display: none;
+      color: #0d0d0f;
+    }
+
+    .option-check input:checked ~ .check-box .check-mark,
+    .option-check:has(input:checked) .check-box .check-mark { display: block; }
+
+    .option-label {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    /* ─── Loading ─────────────────────────────────────────────── */
+    .loading-state {
+      display: none;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px 24px;
+    }
+
+    .loading-state.active { display: flex; }
+
+    .loading-inner {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      width: 100%;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border-mid);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text { flex: 1; }
+
+    .loading-title {
+      font-family: var(--font-head);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .loading-sub {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .loading-progress {
+      flex: 1;
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      max-width: 120px;
+    }
+
+    .loading-bar {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      animation: progress 2s ease-in-out infinite;
+    }
+
+    @keyframes progress {
+      0%   { width: 0%; margin-left: 0; }
+      50%  { width: 70%; margin-left: 0; }
+      100% { width: 0%; margin-left: 100%; }
+    }
+
+    /* ─── Error ───────────────────────────────────────────────── */
+    .error-state {
+      display: none;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px 24px;
+    }
+
+    .error-state.active { display: block; }
+
+    .error-inner {
+      background: rgba(220, 60, 60, 0.06);
+      border: 1px solid rgba(220, 60, 60, 0.25);
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .error-icon { color: #dc3c3c; flex-shrink: 0; margin-top: 1px; }
+
+    .error-title {
+      font-family: var(--font-head);
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #e05555;
+      margin-bottom: 4px;
+    }
+
+    .error-message {
+      font-size: 0.83rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* ─── Result ─────────────────────────────────────────────── */
+    .result-section {
+      display: none;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px 24px;
+      animation: fadeUp 0.35s cubic-bezier(0.2, 0, 0, 1) both;
+    }
+
+    .result-section.active { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .result-meta { flex: 1; min-width: 0; }
+
+    .result-title {
+      font-family: var(--font-head);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .result-url {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .result-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-action {
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: background var(--transition), border-color var(--transition), color var(--transition), transform var(--transition);
+    }
+
+    .btn-copy {
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      color: #0d0d0f;
+    }
+
+    .btn-copy:hover {
+      background: #ffc233;
+      box-shadow: 0 2px 12px var(--accent-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-copy.copied {
+      background: #22c55e;
+      border-color: #22c55e;
+    }
+
+    .btn-clear {
+      background: transparent;
+      border: 1px solid var(--border-mid);
+      color: var(--text-secondary);
+    }
+
+    .btn-clear:hover {
+      border-color: var(--border-mid);
+      background: var(--bg-raised);
+      color: var(--text-primary);
+    }
+
+    /* ─── Stats bar ───────────────────────────────────────────── */
+    .stats-bar {
+      display: flex;
+      gap: 0;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .stat-item {
+      flex: 1;
+      padding: 12px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      border-right: 1px solid var(--border);
+    }
+
+    .stat-item:last-child { border-right: none; }
+
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .stat-value {
+      font-family: var(--font-head);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    /* ─── Output textarea ─────────────────────────────────────── */
+    .output-wrap {
+      position: relative;
+    }
+
+    .output-box {
+      width: 100%;
+      min-height: 420px;
+      max-height: 620px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 22px 24px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      line-height: 1.75;
+      color: var(--text-primary);
+      resize: vertical;
+      outline: none;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      transition: border-color var(--transition);
+    }
+
+    .output-box:focus { border-color: var(--accent-dim); }
+
+    .output-fade {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: linear-gradient(to bottom, transparent, var(--bg-surface));
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      pointer-events: none;
+    }
+
+    /* ─── Footer ─────────────────────────────────────────────── */
+    footer {
+      margin-top: auto;
+      border-top: 1px solid var(--border);
+      padding: 20px 24px;
+    }
+
+    .footer-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .footer-note {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .footer-note a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+
+    .footer-note a:hover { color: var(--accent); }
+
+    .btn-coffee {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-sm);
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      background: var(--bg-raised);
+      transition: border-color var(--transition), color var(--transition), background var(--transition), box-shadow var(--transition);
+    }
+
+    .btn-coffee:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-glow-s);
+      box-shadow: 0 2px 10px var(--accent-glow-s);
+    }
+
+    .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-made {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 4px 9px;
+      border-radius: 999px;
+      letter-spacing: 0.03em;
+    }
+
+    /* ─── Proxy notice ────────────────────────────────────────── */
+    .proxy-notice {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px 20px;
+    }
+
+    .proxy-note {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .proxy-note svg { flex-shrink: 0; }
+
+    /* ─── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .hero { padding: 36px 16px 28px; }
+      .input-card, .loading-state, .error-state,
+      .result-section, .proxy-notice { padding-left: 16px; padding-right: 16px; }
+      .input-row { flex-direction: column; }
+      .btn-fetch { justify-content: center; padding: 12px 24px; }
+      .stats-bar { flex-wrap: wrap; }
+      .stat-item { min-width: 45%; border-right: none; border-bottom: 1px solid var(--border); }
+      .result-header { flex-direction: column; align-items: flex-start; }
+      .result-actions { width: 100%; }
+      .btn-action { flex: 1; justify-content: center; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+      .header-inner { padding: 0 16px; }
+    }
+
+    /* ─── Subtle grid bg ─────────────────────────────────────── */
+    [data-theme="dark"] body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page-wrapper { position: relative; z-index: 1; }
+
+    /* ─── Accent line on input card ───────────────────────────── */
+    .url-form::before {
+      content: '';
+      display: block;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      border-radius: 2px;
+      margin-bottom: 6px;
+      opacity: 0.6;
+    }
+
+    /* ─── Transition body on theme change ─────────────────────── */
+    body, .url-form, .output-box, .stats-bar, .stat-item,
+    .loading-inner, .error-inner, .btn-action, .badge-ai,
+    .theme-toggle, .btn-coffee, header, footer {
+      transition-property: background, background-color, border-color, color, box-shadow;
+      transition-duration: 220ms;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+  </style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <!-- ── Header ─────────────────────────────────────── -->
+  <header>
+    <div class="header-inner">
+      <a href="#" class="logo">
+        <div class="logo-icon">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <path d="M2 3h11M2 7h7M2 11h9" stroke="#0d0d0f" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="logo-text">LLM<span>Scraper</span></span>
+      </a>
+      <div class="header-actions">
+        <span class="badge-ai">v1.0</span>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle dark/light mode">
+          <!-- Sun (shown in light mode) -->
+          <svg class="icon-sun" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.42 1.42M11.53 11.53l1.42 1.42M3.05 12.95l1.42-1.42M11.53 4.47l1.42-1.42"
+              stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <!-- Moon (shown in dark mode) -->
+          <svg class="icon-moon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M13.5 10A6 6 0 0 1 6 2.5a6 6 0 1 0 7.5 7.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Hero ───────────────────────────────────────── -->
+  <section class="hero">
+    <p class="hero-eyebrow">&#9632; Web to LLM Text Converter</p>
+    <h1 class="hero-title">
+      Extract signal.<br>
+      <span class="line2">Feed your LLM clean data.</span>
+    </h1>
+    <p class="hero-sub">
+      Paste any URL. We strip the noise — ads, nav, scripts, styles — and deliver
+      structured markdown text ready for your AI workflow.
+    </p>
+  </section>
+
+  <!-- ── Input card ─────────────────────────────────── -->
+  <div class="input-card">
+    <form class="url-form" id="urlForm" autocomplete="off">
+      <div class="input-row">
+        <div class="url-input-inner" style="flex:1;">
+          <span class="url-prefix" style="padding:0 10px 0 14px;">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="vertical-align:middle;opacity:.5;">
+              <path d="M5.5 7.5a3 3 0 0 0 4.5.3l1.5-1.5a3 3 0 0 0-4.25-4.24L6.26 3.06" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+              <path d="M7.5 5.5a3 3 0 0 0-4.5-.3L1.5 6.7a3 3 0 0 0 4.24 4.24l.99-.99" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <input
+            type="url"
+            id="urlInput"
+            placeholder="https://example.com/article"
+            autocomplete="off"
+            spellcheck="false"
+            required
+          />
+        </div>
+        <button type="submit" class="btn-fetch" id="fetchBtn">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1v9M3.5 6.5 7 10l3.5-3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M1 13h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          Convert
+        </button>
+      </div>
+      <div class="options-row">
+        <label class="option-check" title="Include markdown heading structure">
+          <input type="checkbox" id="optHeadings" checked />
+          <span class="check-box">
+            <svg class="check-mark" width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M1.5 5l2.5 2.5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="option-label">Preserve headings</span>
+        </label>
+        <label class="option-check" title="Attempt to extract only the main article content">
+          <input type="checkbox" id="optMainContent" checked />
+          <span class="check-box">
+            <svg class="check-mark" width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M1.5 5l2.5 2.5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="option-label">Main content only</span>
+        </label>
+        <label class="option-check" title="Add the page URL as a source reference at the top">
+          <input type="checkbox" id="optAddSource" checked />
+          <span class="check-box">
+            <svg class="check-mark" width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M1.5 5l2.5 2.5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="option-label">Add source URL</span>
+        </label>
+      </div>
+    </form>
+  </div>
+
+  <!-- ── Proxy notice ────────────────────────────────── -->
+  <div class="proxy-notice">
+    <p class="proxy-note">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M6 5v4M6 3.5v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      Fetched via CORS proxy. Some pages with strict CSP or auth may not load. Results are processed entirely in your browser.
+    </p>
+  </div>
+
+  <!-- ── Loading ─────────────────────────────────────── -->
+  <div class="loading-state" id="loadingState">
+    <div class="loading-inner">
+      <div class="spinner"></div>
+      <div class="loading-text">
+        <div class="loading-title">Fetching &amp; parsing</div>
+        <div class="loading-sub" id="loadingUrl">Connecting to proxy...</div>
+      </div>
+      <div class="loading-progress"><div class="loading-bar"></div></div>
+    </div>
+  </div>
+
+  <!-- ── Error ───────────────────────────────────────── -->
+  <div class="error-state" id="errorState">
+    <div class="error-inner">
+      <svg class="error-icon" width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <circle cx="9" cy="9" r="7.5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M9 5v5M9 12.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="error-title">Could not fetch page</div>
+        <div class="error-message" id="errorMessage">An error occurred.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Result ─────────────────────────────────────── -->
+  <div class="result-section" id="resultSection">
+    <div class="result-header">
+      <div class="result-meta">
+        <div class="result-title" id="resultTitle">—</div>
+        <div class="result-url" id="resultUrl">—</div>
+      </div>
+      <div class="result-actions">
+        <button class="btn-action btn-clear" id="clearBtn">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M1.5 1.5l10 10M11.5 1.5l-10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Clear
+        </button>
+        <button class="btn-action btn-copy" id="copyBtn">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <rect x="4" y="4" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M9 4V2.5A1 1 0 0 0 8 1.5H1.5A1 1 0 0 0 .5 2.5V9A1 1 0 0 0 1.5 10H3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          <span id="copyLabel">Copy to clipboard</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-label">Characters</span>
+        <span class="stat-value" id="statChars">—</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Est. tokens</span>
+        <span class="stat-value" id="statTokens">—</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Words</span>
+        <span class="stat-value" id="statWords">—</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Headings</span>
+        <span class="stat-value" id="statHeadings">—</span>
+      </div>
+    </div>
+
+    <div class="output-wrap">
+      <textarea class="output-box" id="outputBox" readonly spellcheck="false" aria-label="Converted text output"></textarea>
+      <div class="output-fade"></div>
+    </div>
+  </div>
+
+  <!-- ── Footer ─────────────────────────────────────── -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="#" class="btn-coffee" title="Support this tool">
+          &#9749; Buy me a coffee
+        </a>
+        <span class="footer-note">
+          Free, no login. &nbsp;<a href="#">Privacy</a> &middot; <a href="#">Source</a>
+        </span>
+      </div>
+      <div class="footer-right">
+        <span class="badge-made">made with AI</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Theme toggle ───────────────────────────────────
+  const html = document.documentElement;
+  const themeToggle = document.getElementById('themeToggle');
+  const saved = localStorage.getItem('llmscraper-theme');
+  if (saved) html.setAttribute('data-theme', saved);
+
+  themeToggle.addEventListener('click', () => {
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('llmscraper-theme', next);
+  });
+
+  // ── DOM refs ──────────────────────────────────────
+  const form        = document.getElementById('urlForm');
+  const urlInput    = document.getElementById('urlInput');
+  const fetchBtn    = document.getElementById('fetchBtn');
+  const loadingState = document.getElementById('loadingState');
+  const loadingUrl  = document.getElementById('loadingUrl');
+  const errorState  = document.getElementById('errorState');
+  const errorMsg    = document.getElementById('errorMessage');
+  const resultSec   = document.getElementById('resultSection');
+  const outputBox   = document.getElementById('outputBox');
+  const resultTitle = document.getElementById('resultTitle');
+  const resultUrl   = document.getElementById('resultUrl');
+  const copyBtn     = document.getElementById('copyBtn');
+  const copyLabel   = document.getElementById('copyLabel');
+  const clearBtn    = document.getElementById('clearBtn');
+  const statChars   = document.getElementById('statChars');
+  const statTokens  = document.getElementById('statTokens');
+  const statWords   = document.getElementById('statWords');
+  const statHeadings= document.getElementById('statHeadings');
+  const optHeadings = document.getElementById('optHeadings');
+  const optMainContent = document.getElementById('optMainContent');
+  const optAddSource   = document.getElementById('optAddSource');
+
+  // ── Helpers ───────────────────────────────────────
+  function setState(name) {
+    loadingState.classList.toggle('active', name === 'loading');
+    errorState.classList.toggle('active',   name === 'error');
+    resultSec.classList.toggle('active',    name === 'result');
+  }
+
+  function formatNum(n) {
+    if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+    return String(n);
+  }
+
+  // ── HTML cleaning ────────────────────────────────
+  const NOISE_SELECTORS = [
+    'script', 'style', 'noscript', 'iframe', 'svg',
+    'nav', 'header', 'footer', 'aside',
+    '[role="banner"]', '[role="navigation"]', '[role="complementary"]',
+    '[role="contentinfo"]', '[role="search"]',
+    '.nav', '.navbar', '.navigation', '.menu', '.sidebar', '.side-bar',
+    '.ad', '.ads', '.advertisement', '.advert', '.promo',
+    '.cookie', '.cookies', '.cookie-banner', '.cookie-notice',
+    '.popup', '.modal', '.overlay', '.newsletter',
+    '.social', '.social-share', '.share-buttons',
+    '.comments', '#comments', '.comment-section',
+    '.footer', '.header', '.breadcrumb', '.breadcrumbs',
+    '#header', '#footer', '#nav', '#navigation', '#sidebar',
+    '.related', '.recommended', '.you-may-also',
+    '[data-ad]', '[data-ads]', '[aria-label="advertisement"]',
+  ];
+
+  const MAIN_CONTENT_SELECTORS = [
+    'main', 'article', '[role="main"]',
+    '.post-content', '.article-content', '.entry-content',
+    '.content-body', '.post-body', '.article-body',
+    '.story-body', '.prose', '.markdown-body',
+    '#main-content', '#article', '#content',
+    '.page-content', '.single-content', '.blog-post',
+  ];
+
+  function cleanDOM(doc, mainOnly) {
+    // Remove noise
+    NOISE_SELECTORS.forEach(sel => {
+      try { doc.querySelectorAll(sel).forEach(el => el.remove()); } catch (e) {}
+    });
+
+    if (mainOnly) {
+      for (const sel of MAIN_CONTENT_SELECTORS) {
+        const el = doc.querySelector(sel);
+        if (el && el.textContent.trim().length > 200) return el;
+      }
+    }
+    return doc.body || doc;
+  }
+
+  // ── HTML → markdown-ish text ─────────────────────
+  function elementToText(el, opts) {
+    const lines = [];
+    const { headings } = opts;
+
+    function walk(node) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const t = node.textContent.replace(/\s+/g, ' ');
+        if (t.trim()) lines.push(t);
+        return;
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+      const tag = node.tagName.toLowerCase();
+
+      // Skip invisibles
+      const cs = window.getComputedStyle ? null : null; // not available in DOMParser context
+      if (['script','style','noscript','iframe','canvas','svg','template'].includes(tag)) return;
+
+      if (headings && /^h[1-6]$/.test(tag)) {
+        const level = parseInt(tag[1]);
+        const prefix = '#'.repeat(level);
+        const text = node.textContent.trim();
+        if (text) {
+          lines.push('\n' + prefix + ' ' + text + '\n');
+        }
+        return;
+      }
+
+      if (tag === 'p') {
+        const text = extractText(node).trim();
+        if (text) lines.push('\n' + text + '\n');
+        return;
+      }
+
+      if (tag === 'br') { lines.push('\n'); return; }
+
+      if (tag === 'hr') { lines.push('\n---\n'); return; }
+
+      if (['ul','ol'].includes(tag)) {
+        lines.push('\n');
+        const isOrdered = tag === 'ol';
+        let idx = 1;
+        node.childNodes.forEach(child => {
+          if (child.nodeType === Node.ELEMENT_NODE && child.tagName.toLowerCase() === 'li') {
+            const text = extractText(child).trim();
+            if (text) {
+              lines.push((isOrdered ? idx++ + '. ' : '- ') + text);
+            }
+          }
+        });
+        lines.push('\n');
+        return;
+      }
+
+      if (tag === 'li') {
+        const text = extractText(node).trim();
+        if (text) lines.push('- ' + text);
+        return;
+      }
+
+      if (tag === 'blockquote') {
+        const text = extractText(node).trim();
+        if (text) lines.push('\n> ' + text.replace(/\n/g, '\n> ') + '\n');
+        return;
+      }
+
+      if (['pre','code'].includes(tag)) {
+        const text = node.textContent;
+        if (text.trim()) {
+          if (tag === 'pre') lines.push('\n```\n' + text + '\n```\n');
+          else lines.push('`' + text + '`');
+        }
+        return;
+      }
+
+      if (tag === 'a') {
+        const text = node.textContent.trim();
+        if (text) lines.push(text);
+        return;
+      }
+
+      if (tag === 'img') {
+        const alt = node.getAttribute('alt');
+        if (alt && alt.trim()) lines.push('[Image: ' + alt.trim() + ']');
+        return;
+      }
+
+      if (tag === 'table') {
+        lines.push('\n');
+        processTable(node, lines);
+        lines.push('\n');
+        return;
+      }
+
+      if (['div','section','article','main','aside','figure'].includes(tag)) {
+        lines.push('\n');
+        node.childNodes.forEach(walk);
+        lines.push('\n');
+        return;
+      }
+
+      node.childNodes.forEach(walk);
+    }
+
+    function extractText(node) {
+      let t = '';
+      node.childNodes.forEach(child => {
+        if (child.nodeType === Node.TEXT_NODE) t += child.textContent;
+        else if (child.nodeType === Node.ELEMENT_NODE) {
+          const cn = child.tagName.toLowerCase();
+          if (['script','style'].includes(cn)) return;
+          t += extractText(child);
+        }
+      });
+      return t;
+    }
+
+    function processTable(table, out) {
+      const rows = [];
+      table.querySelectorAll('tr').forEach(tr => {
+        const cells = [];
+        tr.querySelectorAll('th,td').forEach(td => {
+          cells.push(extractText(td).trim().replace(/\n/g,' '));
+        });
+        if (cells.length) rows.push(cells);
+      });
+      if (!rows.length) return;
+      rows.forEach((row, i) => {
+        out.push('| ' + row.join(' | ') + ' |');
+        if (i === 0) out.push('|' + row.map(() => '---').join('|') + '|');
+      });
+    }
+
+    walk(el);
+
+    return lines
+      .join('')
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/[ \t]+\n/g, '\n')
+      .replace(/\n[ \t]+/g, '\n')
+      .trim();
+  }
+
+  // ── Count headings in output ──────────────────────
+  function countHeadings(text) {
+    return (text.match(/^#{1,6} /gm) || []).length;
+  }
+
+  // ── Fetch via proxy ───────────────────────────────
+  const PROXIES = [
+    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  ];
+
+  async function fetchWithFallback(url) {
+    let lastErr;
+    for (const proxyFn of PROXIES) {
+      try {
+        const proxyUrl = proxyFn(url);
+        loadingUrl.textContent = 'via ' + new URL(proxyUrl).hostname + '...';
+        const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(18000) });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const text = await res.text();
+        if (!text || text.length < 50) throw new Error('Empty response');
+        return text;
+      } catch (e) {
+        lastErr = e;
+      }
+    }
+    throw lastErr || new Error('All proxies failed');
+  }
+
+  // ── Main convert logic ────────────────────────────
+  async function convert(rawUrl) {
+    const url = rawUrl.trim();
+
+    setState('loading');
+    loadingUrl.textContent = 'Resolving...';
+    fetchBtn.disabled = true;
+
+    try {
+      const html = await fetchWithFallback(url);
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+
+      // Get title
+      const title = doc.querySelector('title')?.textContent.trim()
+        || doc.querySelector('h1')?.textContent.trim()
+        || 'Untitled';
+
+      // Get meta description
+      const metaDesc = doc.querySelector('meta[name="description"]')?.getAttribute('content')
+        || doc.querySelector('meta[property="og:description"]')?.getAttribute('content')
+        || '';
+
+      const mainOnly = optMainContent.checked;
+      const addSource = optAddSource.checked;
+      const preserveHeadings = optHeadings.checked;
+
+      const rootEl = cleanDOM(doc, mainOnly);
+      const bodyText = elementToText(rootEl, { headings: preserveHeadings });
+
+      // Build output
+      const parts = [];
+      if (addSource) {
+        parts.push(`SOURCE: ${url}`);
+        parts.push('');
+      }
+      parts.push(`# ${title}`);
+      if (metaDesc) {
+        parts.push('');
+        parts.push(`> ${metaDesc}`);
+      }
+      parts.push('');
+      parts.push(bodyText);
+
+      const output = parts.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+
+      // Stats
+      const chars = output.length;
+      const tokens = Math.round(chars / 4);
+      const words = output.split(/\s+/).filter(Boolean).length;
+      const heads = countHeadings(output);
+
+      statChars.textContent    = formatNum(chars);
+      statTokens.textContent   = formatNum(tokens);
+      statWords.textContent    = formatNum(words);
+      statHeadings.textContent = String(heads);
+
+      resultTitle.textContent = title;
+      resultUrl.textContent   = url;
+      outputBox.value         = output;
+
+      setState('result');
+    } catch (err) {
+      let msg = err.message || 'Unknown error';
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+        msg = 'Network error — the proxy could not reach the URL. Check the URL and try again.';
+      } else if (msg.includes('timeout') || msg.includes('AbortError')) {
+        msg = 'Request timed out. The page took too long to respond.';
+      } else if (msg.includes('Empty response')) {
+        msg = 'The page returned empty content. It may require JavaScript or authentication.';
+      }
+      errorMsg.textContent = msg;
+      setState('error');
+    } finally {
+      fetchBtn.disabled = false;
+    }
+  }
+
+  // ── Form submit ───────────────────────────────────
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const val = urlInput.value.trim();
+    if (!val) return;
+    // Prepend https:// if missing
+    let url = val;
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    urlInput.value = url;
+    convert(url);
+  });
+
+  // ── Copy ─────────────────────────────────────────
+  copyBtn.addEventListener('click', async () => {
+    const text = outputBox.value;
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      copyBtn.classList.add('copied');
+      copyLabel.textContent = 'Copied!';
+      setTimeout(() => {
+        copyBtn.classList.remove('copied');
+        copyLabel.textContent = 'Copy to clipboard';
+      }, 2200);
+    } catch {
+      // Fallback
+      outputBox.select();
+      document.execCommand('copy');
+      copyLabel.textContent = 'Copied!';
+      setTimeout(() => { copyLabel.textContent = 'Copy to clipboard'; }, 2200);
+    }
+  });
+
+  // ── Clear ─────────────────────────────────────────
+  clearBtn.addEventListener('click', () => {
+    setState('');
+    outputBox.value = '';
+    urlInput.value = '';
+    urlInput.focus();
+  });
+
+  // ── Focus URL input on load ───────────────────────
+  urlInput.focus();
+
+})();
+</script>
+</body>
+</html>
