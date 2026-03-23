@@ -10,6 +10,7 @@
     :root {
       --bg: #0d1117;
       --surface: #161b22;
+      --surface2: #1c2128;
       --border: #30363d;
       --text: #e6edf3;
       --muted: #8b949e;
@@ -27,7 +28,7 @@
       min-height: 100vh;
     }
 
-    /* Hero */
+    /* ── Hero ─────────────────────────────── */
     .hero {
       text-align: center;
       padding: 80px 24px 64px;
@@ -69,30 +70,198 @@
       margin: 0 auto;
     }
 
-    /* Tools grid */
+    /* ── Controls (search + filter + sort) ── */
+    .controls {
+      max-width: 960px;
+      margin: 40px auto 0;
+      padding: 0 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Search */
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-wrap .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 16px;
+      pointer-events: none;
+      line-height: 1;
+    }
+
+    #search-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 44px 12px 42px;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    #search-input::placeholder { color: var(--muted); }
+
+    #search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(88,166,255,0.15);
+    }
+
+    .clear-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      padding: 4px;
+      border-radius: 4px;
+      display: none;
+      transition: color 0.15s;
+    }
+
+    .clear-btn:hover { color: var(--text); }
+    .clear-btn.visible { display: block; }
+
+    /* Filter + Sort row */
+    .filter-sort-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .category-pills {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+
+    .pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .pill:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .pill.active {
+      background: rgba(88,166,255,0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Sort dropdown */
+    .sort-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .sort-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    #sort-select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.85rem;
+      padding: 6px 10px;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b949e' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+    }
+
+    #sort-select:focus { border-color: var(--accent); }
+
+    /* ── Tool count bar ───────────────────── */
+    .count-bar {
+      max-width: 960px;
+      margin: 20px auto 0;
+      padding: 0 24px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* ── Tools grid ───────────────────────── */
     .tools {
       max-width: 960px;
-      margin: 64px auto;
+      margin: 20px auto 64px;
       padding: 0 24px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
       gap: 24px;
     }
 
+    /* Card */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 28px;
+      padding: 24px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      transition: border-color 0.2s, transform 0.2s;
+      gap: 12px;
+      transition: border-color 0.2s, transform 0.2s, opacity 0.25s;
+      animation: fadeIn 0.25s ease both;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card.hidden {
+      display: none;
     }
 
     .card:hover {
       border-color: var(--accent);
       transform: translateY(-3px);
+    }
+
+    /* Card top row: icon + like */
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
     }
 
     .card-icon {
@@ -103,20 +272,90 @@
       align-items: center;
       justify-content: center;
       font-size: 22px;
+      flex-shrink: 0;
     }
 
-    .icon-blue  { background: rgba(88,166,255,0.15); }
-    .icon-green { background: rgba(63,185,80,0.15); }
-    .icon-purple{ background: rgba(188,140,255,0.15); }
+    .icon-blue   { background: rgba(88,166,255,0.15); }
+    .icon-green  { background: rgba(63,185,80,0.15); }
+    .icon-purple { background: rgba(188,140,255,0.15); }
+
+    /* Like button */
+    .like-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 10px;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: border-color 0.15s, color 0.15s, transform 0.15s;
+      user-select: none;
+    }
+
+    .like-btn:hover {
+      border-color: #f85149;
+      color: #f85149;
+    }
+
+    .like-btn.liked {
+      border-color: #f85149;
+      color: #f85149;
+      background: rgba(248,81,73,0.08);
+    }
+
+    .like-btn .heart {
+      font-size: 14px;
+      transition: transform 0.2s;
+      display: inline-block;
+    }
+
+    .like-btn.bounce .heart {
+      animation: heartBounce 0.35s ease;
+    }
+
+    @keyframes heartBounce {
+      0%   { transform: scale(1); }
+      30%  { transform: scale(1.5); }
+      60%  { transform: scale(0.85); }
+      100% { transform: scale(1); }
+    }
 
     .card h2 {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       color: var(--text);
     }
 
+    /* Category tags on card */
+    .card-cats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .cat-tag {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .cat-tag.data     { color: #58a6ff; border-color: rgba(88,166,255,0.3);  background: rgba(88,166,255,0.08); }
+    .cat-tag.search   { color: #bc8cff; border-color: rgba(188,140,255,0.3); background: rgba(188,140,255,0.08); }
+    .cat-tag.web      { color: #3fb950; border-color: rgba(63,185,80,0.3);   background: rgba(63,185,80,0.08); }
+    .cat-tag.developer{ color: #f0883e; border-color: rgba(240,136,62,0.3);  background: rgba(240,136,62,0.08); }
+
     .card p {
-      font-size: 0.9rem;
+      font-size: 0.875rem;
       color: var(--muted);
       flex: 1;
     }
@@ -132,11 +371,42 @@
       background: var(--accent);
       color: #0d1117;
       transition: opacity 0.15s;
+      align-self: flex-start;
     }
 
     .btn:hover { opacity: 0.85; }
 
-    /* Footer */
+    /* ── Empty state ──────────────────────── */
+    .empty-state {
+      display: none;
+      max-width: 960px;
+      margin: 20px auto 64px;
+      padding: 0 24px;
+      text-align: center;
+    }
+
+    .empty-state.visible {
+      display: block;
+    }
+
+    .empty-inner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 60px 24px;
+      color: var(--muted);
+    }
+
+    .empty-inner .empty-icon {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+    }
+
+    .empty-inner p {
+      font-size: 1rem;
+    }
+
+    /* ── Footer ───────────────────────────── */
     footer {
       border-top: 1px solid var(--border);
       padding: 32px 24px;
@@ -173,6 +443,23 @@
 
     .coffee-btn:hover { opacity: 0.85; }
 
+    .feedback-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 16px;
+      border-radius: 8px;
+      background: rgba(88,166,255,0.15);
+      border: 1px solid rgba(88,166,255,0.3);
+      color: #58a6ff;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+
+    .feedback-btn:hover { opacity: 0.85; }
+
     .ai-badge {
       display: inline-flex;
       align-items: center;
@@ -182,6 +469,13 @@
       border-radius: 6px;
       font-size: 0.8rem;
       color: var(--muted);
+    }
+
+    /* ── Responsive ───────────────────────── */
+    @media (max-width: 600px) {
+      .filter-sort-row { flex-direction: column; align-items: flex-start; }
+      .sort-wrap { width: 100%; justify-content: flex-end; }
+      .hero { padding: 56px 20px 48px; }
     }
   </style>
 </head>
@@ -193,60 +487,419 @@
     <p>Free AI-Powered Micro Utilities — small tools that do one thing well.</p>
   </header>
 
-  <main class="tools">
+  <!-- Controls -->
+  <div class="controls">
+    <!-- Search -->
+    <div class="search-wrap">
+      <span class="search-icon">🔎</span>
+      <input id="search-input" type="text" placeholder="Search tools..." autocomplete="off" spellcheck="false">
+      <button class="clear-btn" id="clear-btn" aria-label="Clear search">✕</button>
+    </div>
 
-    <div class="card">
-      <div class="card-icon icon-blue">🔍</div>
+    <!-- Filter pills + Sort -->
+    <div class="filter-sort-row">
+      <div class="category-pills" id="category-pills">
+        <button class="pill active" data-cat="all">All</button>
+        <button class="pill" data-cat="data">Data</button>
+        <button class="pill" data-cat="search">Search</button>
+        <button class="pill" data-cat="web">Web</button>
+        <button class="pill" data-cat="developer">Developer</button>
+      </div>
+      <div class="sort-wrap">
+        <span class="sort-label">Sort:</span>
+        <select id="sort-select">
+          <option value="popular">Popular</option>
+          <option value="newest">Newest</option>
+          <option value="az">A → Z</option>
+          <option value="za">Z → A</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Count bar -->
+  <div class="count-bar" id="count-bar"></div>
+
+  <!-- Tool grid -->
+  <main class="tools" id="tools-grid">
+
+    <div class="card"
+         data-id="llm-scraper"
+         data-name="LLM Scraper"
+         data-cats="web developer"
+         data-added="1"
+         data-href="llm-scraper.html">
+      <div class="card-top">
+        <div class="card-icon icon-blue">🔍</div>
+        <button class="like-btn" data-id="llm-scraper" aria-label="Like LLM Scraper">
+          <span class="heart">♡</span>
+          <span class="like-count">0</span>
+        </button>
+      </div>
       <h2>LLM Scraper</h2>
+      <div class="card-cats">
+        <span class="cat-tag web">Web</span>
+        <span class="cat-tag developer">Developer</span>
+      </div>
       <p>Convert any webpage to clean, LLM-ready markdown text. Strip noise, keep signal.</p>
       <a class="btn" href="llm-scraper.html">Try it</a>
     </div>
 
-    <div class="card">
-      <div class="card-icon icon-green">🔖</div>
+    <div class="card"
+         data-id="bookmark-organizer"
+         data-name="Bookmark Organizer"
+         data-cats="web"
+         data-added="2"
+         data-href="bookmark-organizer.html">
+      <div class="card-top">
+        <div class="card-icon icon-green">🔖</div>
+        <button class="like-btn" data-id="bookmark-organizer" aria-label="Like Bookmark Organizer">
+          <span class="heart">♡</span>
+          <span class="like-count">0</span>
+        </button>
+      </div>
       <h2>Bookmark Organizer</h2>
+      <div class="card-cats">
+        <span class="cat-tag web">Web</span>
+      </div>
       <p>Auto-categorize and analyze your browser bookmarks. Bring order to the chaos.</p>
       <a class="btn" href="bookmark-organizer.html">Try it</a>
     </div>
 
-    <div class="card">
-      <div class="card-icon icon-purple">⚡</div>
+    <div class="card"
+         data-id="multisearch"
+         data-name="MultiSearch"
+         data-cats="search"
+         data-added="3"
+         data-href="search-compare.html">
+      <div class="card-top">
+        <div class="card-icon icon-purple">⚡</div>
+        <button class="like-btn" data-id="multisearch" aria-label="Like MultiSearch">
+          <span class="heart">♡</span>
+          <span class="like-count">0</span>
+        </button>
+      </div>
       <h2>MultiSearch</h2>
+      <div class="card-cats">
+        <span class="cat-tag search">Search</span>
+      </div>
       <p>Search across 5 engines simultaneously. Compare results, find more.</p>
       <a class="btn" href="search-compare.html">Try it</a>
     </div>
 
-    <div class="card">
-      <div class="card-icon icon-blue">📊</div>
+    <div class="card"
+         data-id="dataview"
+         data-name="DataView"
+         data-cats="data developer"
+         data-added="4"
+         data-href="data-viewer.html">
+      <div class="card-top">
+        <div class="card-icon icon-blue">📊</div>
+        <button class="like-btn" data-id="dataview" aria-label="Like DataView">
+          <span class="heart">♡</span>
+          <span class="like-count">0</span>
+        </button>
+      </div>
       <h2>DataView</h2>
+      <div class="card-cats">
+        <span class="cat-tag data">Data</span>
+        <span class="cat-tag developer">Developer</span>
+      </div>
       <p>Paste JSON or CSV data, visualize in sortable tables, edit inline, and export.</p>
       <a class="btn" href="data-viewer.html">Try it</a>
     </div>
 
-    <div class="card">
-      <div class="card-icon icon-green">🔗</div>
+    <div class="card"
+         data-id="cardpreview"
+         data-name="CardPreview"
+         data-cats="web developer"
+         data-added="5"
+         data-href="url-preview.html">
+      <div class="card-top">
+        <div class="card-icon icon-green">🔗</div>
+        <button class="like-btn" data-id="cardpreview" aria-label="Like CardPreview">
+          <span class="heart">♡</span>
+          <span class="like-count">0</span>
+        </button>
+      </div>
       <h2>CardPreview</h2>
+      <div class="card-cats">
+        <span class="cat-tag web">Web</span>
+        <span class="cat-tag developer">Developer</span>
+      </div>
       <p>Generate and preview social media cards. See how your link looks on Twitter, Facebook, Discord.</p>
       <a class="btn" href="url-preview.html">Try it</a>
     </div>
 
-    <div class="card">
-      <div class="card-icon icon-purple">📡</div>
+    <div class="card"
+         data-id="hn-watch"
+         data-name="HN Watch"
+         data-cats="web search"
+         data-added="6"
+         data-href="hn-monitor.html">
+      <div class="card-top">
+        <div class="card-icon icon-purple">📡</div>
+        <button class="like-btn" data-id="hn-watch" aria-label="Like HN Watch">
+          <span class="heart">♡</span>
+          <span class="like-count">0</span>
+        </button>
+      </div>
       <h2>HN Watch</h2>
+      <div class="card-cats">
+        <span class="cat-tag web">Web</span>
+        <span class="cat-tag search">Search</span>
+      </div>
       <p>Monitor Hacker News threads for new comments. Watch discussions, never miss a reply.</p>
       <a class="btn" href="hn-monitor.html">Try it</a>
     </div>
 
   </main>
 
+  <!-- Empty state -->
+  <div class="empty-state" id="empty-state">
+    <div class="empty-inner">
+      <div class="empty-icon">🔭</div>
+      <p>No tools found. Try a different search or category.</p>
+    </div>
+  </div>
+
   <footer>
     <div class="footer-links">
       <a class="coffee-btn" href="https://buymeacoffee.com/beelinkfarm" target="_blank" rel="noopener">☕ Buy Me a Coffee</a>
-      <a href="https://github.com/beelinkfarm/micro-tools/issues/new?title=[Feedback]%20&body=Which%20tool%3A%20%0ADescription%3A%20" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;background:rgba(88,166,255,0.15);border:1px solid rgba(88,166,255,0.3);color:#58a6ff;font-weight:600;font-size:0.85rem;text-decoration:none;">💬 Feedback</a>
+      <a class="feedback-btn" href="https://github.com/beelinkfarm/micro-tools/issues/new?title=[Feedback]%20&body=Which%20tool%3A%20%0ADescription%3A%20" target="_blank" rel="noopener">💬 Feedback</a>
     </div>
     <div class="ai-badge">🤖 Made with AI</div>
-    <span>© 2025 MicroTools · All tools run in your browser</span>
+    <span>© 2026 MicroTools · All tools run in your browser</span>
   </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* ── Constants ── */
+      const STORAGE_KEY = 'microtools-likes';
+      const ALL_CARDS = Array.from(document.querySelectorAll('.card'));
+      const TOTAL = ALL_CARDS.length;
+
+      /* ── State ── */
+      let activeCategories = new Set(['all']);
+      let currentSort = 'popular';
+      let searchQuery = '';
+
+      /* ── Likes ── */
+      function loadLikes() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+        catch (_) { return {}; }
+      }
+
+      function saveLikes(likes) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(likes)); }
+        catch (_) {}
+      }
+
+      function getLikeCount(id) {
+        return loadLikes()[id] || 0;
+      }
+
+      function toggleLike(id) {
+        const likes = loadLikes();
+        if (likes[id] && likes[id] > 0) {
+          likes[id] = 0;
+        } else {
+          likes[id] = 1;
+        }
+        saveLikes(likes);
+        return likes[id];
+      }
+
+      function isLiked(id) {
+        const likes = loadLikes();
+        return !!(likes[id] && likes[id] > 0);
+      }
+
+      /* Initialise all like buttons from storage */
+      function initLikeButtons() {
+        document.querySelectorAll('.like-btn').forEach(function (btn) {
+          const id = btn.dataset.id;
+          const countEl = btn.querySelector('.like-count');
+          const heartEl = btn.querySelector('.heart');
+          const liked = isLiked(id);
+          countEl.textContent = getLikeCount(id);
+          heartEl.textContent = liked ? '❤️' : '♡';
+          btn.classList.toggle('liked', liked);
+        });
+      }
+
+      /* ── Filter + Sort logic ── */
+      function cardMatchesSearch(card) {
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase();
+        const name = (card.dataset.name || '').toLowerCase();
+        const desc = (card.querySelector('p') || {}).textContent || '';
+        return name.includes(q) || desc.toLowerCase().includes(q);
+      }
+
+      function cardMatchesCategory(card) {
+        if (activeCategories.has('all')) return true;
+        const cardCats = (card.dataset.cats || '').split(' ');
+        for (const cat of activeCategories) {
+          if (cardCats.includes(cat)) return true;
+        }
+        return false;
+      }
+
+      function getSortValue(card) {
+        if (currentSort === 'popular') {
+          return -getLikeCount(card.dataset.id); // descending
+        }
+        if (currentSort === 'newest') {
+          return Number(card.dataset.added); // ascending (lower = older... but all same date, use added order)
+        }
+        if (currentSort === 'az') {
+          return (card.dataset.name || '').toLowerCase();
+        }
+        if (currentSort === 'za') {
+          return (card.dataset.name || '').toLowerCase();
+        }
+        return 0;
+      }
+
+      function applyFiltersAndSort() {
+        const grid = document.getElementById('tools-grid');
+        const emptyState = document.getElementById('empty-state');
+        const countBar = document.getElementById('count-bar');
+
+        // Determine visible cards
+        const visible = ALL_CARDS.filter(function (card) {
+          return cardMatchesSearch(card) && cardMatchesCategory(card);
+        });
+
+        // Sort visible cards
+        const sorted = visible.slice().sort(function (a, b) {
+          const va = getSortValue(a);
+          const vb = getSortValue(b);
+          if (currentSort === 'za') {
+            if (va < vb) return 1;
+            if (va > vb) return -1;
+            return 0;
+          }
+          if (va < vb) return -1;
+          if (va > vb) return 1;
+          return 0;
+        });
+
+        // Hide/show cards and reorder in DOM
+        const hiddenSet = new Set(ALL_CARDS.filter(function (c) { return !visible.includes(c); }));
+
+        hiddenSet.forEach(function (card) { card.classList.add('hidden'); });
+
+        // Re-append in sorted order (only visible)
+        sorted.forEach(function (card) {
+          card.classList.remove('hidden');
+          // Remove and re-append to reorder
+          grid.appendChild(card);
+        });
+
+        // Empty state
+        if (visible.length === 0) {
+          emptyState.classList.add('visible');
+          grid.style.display = 'none';
+        } else {
+          emptyState.classList.remove('visible');
+          grid.style.display = '';
+        }
+
+        // Count bar
+        countBar.textContent = 'Showing ' + visible.length + ' of ' + TOTAL + ' tools';
+      }
+
+      /* ── Event: Search ── */
+      const searchInput = document.getElementById('search-input');
+      const clearBtn = document.getElementById('clear-btn');
+
+      searchInput.addEventListener('input', function () {
+        searchQuery = this.value.trim();
+        clearBtn.classList.toggle('visible', searchQuery.length > 0);
+        applyFiltersAndSort();
+      });
+
+      clearBtn.addEventListener('click', function () {
+        searchInput.value = '';
+        searchQuery = '';
+        clearBtn.classList.remove('visible');
+        searchInput.focus();
+        applyFiltersAndSort();
+      });
+
+      /* ── Event: Category pills ── */
+      document.getElementById('category-pills').addEventListener('click', function (e) {
+        const pill = e.target.closest('.pill');
+        if (!pill) return;
+
+        const cat = pill.dataset.cat;
+
+        if (cat === 'all') {
+          activeCategories = new Set(['all']);
+        } else {
+          // Remove 'all' if it was active
+          activeCategories.delete('all');
+          if (activeCategories.has(cat)) {
+            activeCategories.delete(cat);
+            // If nothing left, fall back to 'all'
+            if (activeCategories.size === 0) activeCategories.add('all');
+          } else {
+            activeCategories.add(cat);
+          }
+        }
+
+        // Update pill visual states
+        document.querySelectorAll('.pill').forEach(function (p) {
+          const c = p.dataset.cat;
+          p.classList.toggle('active', activeCategories.has(c));
+        });
+
+        applyFiltersAndSort();
+      });
+
+      /* ── Event: Sort ── */
+      document.getElementById('sort-select').addEventListener('change', function () {
+        currentSort = this.value;
+        applyFiltersAndSort();
+      });
+
+      /* ── Event: Like buttons ── */
+      document.getElementById('tools-grid').addEventListener('click', function (e) {
+        const btn = e.target.closest('.like-btn');
+        if (!btn) return;
+
+        const id = btn.dataset.id;
+        const newCount = toggleLike(id);
+        const liked = isLiked(id);
+
+        const countEl = btn.querySelector('.like-count');
+        const heartEl = btn.querySelector('.heart');
+
+        countEl.textContent = newCount;
+        heartEl.textContent = liked ? '❤️' : '♡';
+        btn.classList.toggle('liked', liked);
+
+        // Bounce animation
+        btn.classList.remove('bounce');
+        // Force reflow to restart animation
+        void btn.offsetWidth;
+        btn.classList.add('bounce');
+
+        // Re-sort if sorted by popular
+        if (currentSort === 'popular') {
+          applyFiltersAndSort();
+        }
+      });
+
+      /* ── Init ── */
+      initLikeButtons();
+      applyFiltersAndSort();
+    })();
+  </script>
 
 </body>
 </html>
