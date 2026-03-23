@@ -801,8 +801,8 @@
 .micro-nav-back, .micro-nav-home {
   position: fixed;
   top: 16px;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   border: 1px solid rgba(255,255,255,0.1);
   background: rgba(20,20,23,0.85);
@@ -845,9 +845,9 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 8px 16px;
+  padding: 10px 20px;
   border-radius: 999px;
-  font-size: 0.82rem;
+  font-size: 0.95rem;
   font-weight: 700;
   text-decoration: none;
   transition: opacity 0.2s;
@@ -857,16 +857,16 @@
 .micro-float-bmc { background: #ffdd00; color: #0d0d0f; }
 .micro-float-feedback { background: #58a6ff; color: #fff; }
 @media (max-width: 400px) {
-  .micro-float-bar a { padding: 6px 12px; font-size: 0.75rem; }
-  .micro-nav-back, .micro-nav-home { width: 36px; height: 36px; font-size: 16px; }
+  .micro-float-bar a { padding: 8px 14px; font-size: 0.82rem; }
+  .micro-nav-back, .micro-nav-home { width: 42px; height: 42px; font-size: 19px; }
 }
 </style>
 <!-- Floating Navigation -->
-<button class="micro-nav-back" onclick="history.back()" aria-label="Go back">←</button>
+<button class="micro-nav-back" onclick="history.back()" aria-label="Go back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
 <a class="micro-nav-home" href="index.html" aria-label="Home">🏠</a>
 <div class="micro-float-bar">
   <a class="micro-float-bmc" href="https://buymeacoffee.com/beelinkfarm" target="_blank" rel="noopener">☕ Buy me a coffee</a>
-  <a class="micro-float-feedback" href="https://github.com/beelinkfarm/micro-tools/issues/new?title=[LLM%20Scraper]%20&labels=llm-scraper&body=Description%3A%20" target="_blank" rel="noopener">💬 Feedback</a>
+  <a class="micro-float-feedback" href="#giscus-comments" onclick="document.getElementById('giscus-comments').scrollIntoView({behavior:'smooth'});return false;">💬 Feedback</a>
 </div>
 <div class="page-wrapper">
 
@@ -1466,5 +1466,27 @@
 
 })();
 </script>
+<!-- Comments Section -->
+<div id="giscus-comments" style="max-width:800px;margin:40px auto 20px;padding:0 16px 80px;">
+  <h3 style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700;color:var(--text-primary,#f0eff2);margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+    💬 Comments & Feedback
+  </h3>
+  <script src="https://giscus.app/client.js"
+    data-repo="beelinkfarm/micro-tools"
+    data-repo-id="R_kgDORt_Frg"
+    data-category="General"
+    data-category-id="DIC_kwDORt_Frs4C5Dj0"
+    data-mapping="specific"
+    data-term="LLM Scraper"
+    data-strict="0"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="top"
+    data-theme="dark_dimmed"
+    data-lang="en"
+    crossorigin="anonymous"
+    async>
+  </script>
+</div>
 </body>
 </html>
