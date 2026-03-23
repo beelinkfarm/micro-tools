@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CSV 파일을 JSON으로 변환하며 컬럼 매핑을 지원하는 브라우저 도구">
+    <title>CSV to JSON 컬럼 매핑 도구 | Micro Tools</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-293GLNTDLQ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-293GLNTDLQ');
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #0d0d0f;
+            --bg-secondary: #1a1a1f;
+            --accent: #f0a500;
+            --text-primary: #e8e8e8;
+            --text-muted: #aaa;
+            --border: #2a2a35;
+        }
+        
+        html, body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+        }
+        
+        /* Floating Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(13, 13, 15, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Syne', sans-serif;
+        }
+        
+        .nav-left {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .nav-right {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        
+        .nav-brand {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-left: 1rem;
+        }
+        
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        
+        .nav-btn:hover {
+            background: var(--bg-secondary);
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+        
+        .nav-btn.accent {
+            color: var(--accent);
+        }
+        
+        .nav-btn.accent:hover {
+            background: rgba(240, 165, 0, 0.1);
+            border-color: var(--accent);
+        }
+        
+        /* Main Content */
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 6rem 2rem 2rem;
+            min-height: 100vh;
+        }
+        
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+        
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .section h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+        }
+        
+        /* Drop Zone */
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(240, 165, 0, 0.02);
+        }
+        
+        .drop-zone:hover {
+            border-color: var(--accent);
+            background: rgba(240, 165, 0, 0.05);
+        }
+        
+        .drop-zone.active {
+            border-color: var(--accent);
+            background: rgba(240, 165, 0, 0.1);
+        }
+        
+        .drop-zone p {
+            margin: 0.5rem 0;
+            color: var(--text-muted);
+        }
+        
+        .drop-zone .icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        #csvInput {
+            display: none;
+        }
+        
+        /* Mapping Section */
+        .mapping-container {
+            display: none;
+        }
+        
+        .mapping-grid {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .mapping-row {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1rem;
+            align-items: center;
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+        
+        .mapping-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .mapping-input {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.75rem;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .mapping-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: rgba(240, 165, 0, 0.05);
+        }
+        
+        .mapping-arrow {
+            text-align: center;
+            color: var(--accent);
+            font-weight: bold;
+        }
+        
+        /* Preview Section */
+        .preview-container {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .preview-header {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            color: var(--accent);
+        }
+        
+        .preview-content {
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg-primary);
+        }
+        
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(240, 165, 0, 0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        /* Messages */
+        .message {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .message.success {
+            display: block;
+            background: rgba(76, 175, 80, 0.15);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            color: #4caf50;
+        }
+        
+        .message.error {
+            display: block;
+            background: rgba(244, 67, 54, 0.15);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            color: #f44336;
+        }
+        
+        /* Support Section */
+        .support-section {
+            background: rgba(240, 165, 0, 0.08);
+            border: 1px solid rgba(240, 165, 0, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .support-section h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem;
+            color: var(--accent);
+            margin-bottom: 0.75rem;
+        }
+        
+        .support-section p {
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 2rem;
+            border-top: 1px solid var(--border);
+            margin-top: 3rem;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            
+            .nav-brand {
+                display: none;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .mapping-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .mapping-arrow {
+                display: none;
+            }
+            
+            main {
+                padding: 5rem 1rem 2rem;
+            }
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Navigation -->
+    <nav>
+        <div class="nav-left">
+            <button class="nav-btn" onclick="history.back()">← Back</button>
+            <a href="https://beelinkfarm.github.io/micro-tools/" class="nav-btn">🏠 Home</a>
+            <span class="nav-brand">CSV to JSON Mapper</span>
+        </div>
+        <div class="nav-right">
+            <a href="https://buymeacoffee.com/beelinkfarm" target="_blank" class="nav-btn accent">☕ Support</a>
+            <a href="https://github.com/beelinkfarm/micro-tools/issues/new?title=[Feedback]%20CSV%20to%20JSON%20Mapper&body=Tool:%20CSV%20to%20JSON%20Mapper%0ADescription:%20" target="_blank" class="nav-btn accent">💬 Feedback</a>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main>
+        <h1>CSV to JSON 컬럼 매핑 도구</h1>
+        <p class="subtitle">CSV 파일을 JSON 형식으로 변환하고 컬럼을 자유롭게 매핑하세요. 드래그앤드롭으로 파일을 업로드하고, 각 컬럼을 원하는 JSON 키로 매핑한 후 실시간 미리보기를 확인하고 결과를 다운로드할 수 있습니다.</p>
+        
+        <!-- Upload Section -->
+        <div class="section">
+            <h2>📁 CSV 파일 업로드</h2>
+            <div class="drop-zone" id="dropZone" onclick="document.getElementById('csvInput').click()">
+                <div class="icon">📄</div>
+                <p><strong>파일을 드래그하거나 클릭하여 업로드</strong></p>
+                <p style="font-size: 0.9rem; margin-top: 0.5rem;">지원 형식: CSV</p>
+            </div>
+            <input type="file" id="csvInput" accept=".csv" />
+            <div id="uploadMessage" class="message"></div>
+        </div>
+        
+        <!-- Mapping Section -->
+        <div class="section mapping-container" id="mappingSection">
+            <h2>🔗 컬럼 매핑</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">CSV의 각 컬럼을 JSON 키로 매핑하세요.</p>
+            <div class="mapping-grid" id="mappingGrid"></div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="convertToJSON()">JSON으로 변환</button>
+                <button class="btn btn-secondary" onclick="resetMapping()">초기화</button>
+            </div>
+        </div>
+        
+        <!-- Preview Section -->
+        <div class="section preview-container" id="previewSection">
+            <div class="preview-header">📊 JSON 미리보기</div>
+            <div class="preview-content" id="previewContent"></div>
+            <div class="btn-group" style="margin: 1rem;">
+                <button class="btn btn-primary" onclick="downloadJSON()">📥 JSON 다운로드</button>
+                <button class="btn btn-secondary" onclick="copyToClipboard()">📋 복사</button>
+            </div>
+        </div>
+        
+        <!-- Support Section -->
+        <div class="support-section">
+            <h3>☕ 이 도구가 도움이 되셨나요?</h3>
+            <p>개발을 계속할 수 있도록 응원해주세요.</p>
+            <a href="https://buymeacoffee.com/beelinkfarm" target="_blank" class="btn btn-primary">☕ 커피 사주기</a>
+        </div>
+        
+        <!-- Giscus Comments -->
+        <div class="section" style="margin-top: 3rem;">
+            <script src="https://giscus.app/client.js"
+                    data-repo="beelinkfarm/micro-tools"
+                    data-repo-id="R_kgDORt_Frg"
+                    data-category="General"
+                    data-category-id="DIC_kwDORt_Frs4C5Dj0"
+                    data-mapping="pathname"
+                    data-strict="0"
+                    data-reactions-enabled="1"
+                    data-emit-metadata="0"
+                    data-input-position="bottom"
+                    data-theme="dark_dimmed"
+                    data-lang="ko"
+                    crossorigin="anonymous"
+                    async>
+            </script>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer>
+        <p>© 2025 beelinkfarm.com — All tools free to use</p>
+    </footer>
+    
+    <script>
+        let csvData = [];
+        let headers = [];
+        let jsonOutput = [];
+        
+        // Track key events
+        function trackEvent(eventName, params = {}) {
+            if (typeof gtag !== 'undefined') {
+                gtag('event', eventName, params);
+            }
+        }
+        
+        // Drag and Drop
+        const dropZone = document.getElementById('dropZone');
+        const csvInput = document.getElementById('csvInput');
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('active');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('active');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('active');
+            const file = e.dataTransfer.files[0];
+            if (file && file.name.endsWith('.csv')) {
+                handleCSVFile(file);
+            } else {
+                showMessage('CSV 파일만 업로드 가능합니다.', 'error');
+            }
+        });
+        
+        csvInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleCSVFile(file);
+            }
+        });
+        
+        function handleCSVFile(file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const csv = event.target.result;
+                    parseCSV(csv);
+                    showMessage('CSV 파일이 성공적으로 로드되었습니다.', 'success');
+                    trackEvent('csv_uploaded', { file_name: file.name });
+                } catch (error) {
+                    showMessage('CSV 파일 파싱 중 오류가 발생했습니다.', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        function parseCSV(csv) {
+            const lines = csv.trim().split('\n');
+            if (lines.length === 0) return;
+            
+            // Parse header
+            headers = lines[0].split(',').map(h => h.trim());
+            
+            // Parse data
+            csvData = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim() === '') continue;
+                const values = lines[i].split(',').map(v => v.trim());
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = values[index] || '';
+                });
+                csvData.push(row);
+            }
+            
+            generateMappingUI();
+            document.getElementById('mappingSection').style.display = 'block';
+        }
+        
+        function generateMappingUI() {
+            const grid = document.getElementById('mappingGrid');
+            grid.innerHTML = '';
+            
+            headers.forEach((header) => {
+                const row = document.createElement('div');
+                row.className = 'mapping-row';
+                row.innerHTML = `
+                    <div>
+                        <div class="mapping-label">CSV 컬럼</div>
+                        <div style="background: var(--bg-secondary); padding: 0.75rem; border-radius: 4px; border: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;">${header}</div>
+                    </div>
+                    <div class="mapping-arrow">→</div>
+                    <div>
+                        <div class="mapping-label">JSON 키</div>
+                        <input type="text" class="mapping-input" value="${header}" data-column="${header}" />
+                    </div>
+                `;
+                grid.appendChild(row);
+            });
+        }
+        
+        function convertToJSON() {
+            const inputs = document.querySelectorAll('.mapping-input');
+            const mapping = {};
+            
+            inputs.forEach(input => {
+                const column = input.getAttribute('data-column');
+                const jsonKey = input.value.trim();
+                if (jsonKey) {
+                    mapping[column] = jsonKey;
+                }
+            });
+            
+            jsonOutput = csvData.map(row => {
+                const jsonRow = {};
+                Object.keys(mapping).forEach(column => {
+                    jsonRow[mapping[column]] = row[column];
+                });
+                return jsonRow;
+            });
+            
+            displayPreview();
+            trackEvent('json_converted', { rows_count: jsonOutput.length });
+        }
+        
+        function displayPreview() {
+            const preview = document.getElementById('previewContent');
+            preview.textContent = JSON.stringify(jsonOutput, null, 2);
+            document.getElementById('previewSection').style.display = 'block';
+        }
+        
+        function downloadJSON() {
+            const json = JSON.stringify(jsonOutput, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `data_${new Date().getTime()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            trackEvent('json_downloaded');
+        }
+        
+        function copyToClipboard() {
+            const json = JSON.stringify(jsonOutput, null, 2);
+            navigator.clipboard.writeText(json).then(() => {
+                showMessage('JSON이 클립보드에 복사되었습니다.', 'success');
+                trackEvent('json_copied');
+            }).catch(() => {
+                showMessage('복사 중 오류가 발생했습니다.', 'error');
+            });
+        }
+        
+        function resetMapping() {
+            csvInput.value = '';
+            csvData = [];
+            headers = [];
+            jsonOutput = [];
+            document.getElementById('mappingSection').style.display = 'none';
+            document.getElementById('previewSection').style.display = 'none';
+            document.getElementById('uploadMessage').innerHTML = '';
+            trackEvent('mapping_reset');
+        }
+        
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('uploadMessage');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            setTimeout(() => {
+                messageEl.className = 'message';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
