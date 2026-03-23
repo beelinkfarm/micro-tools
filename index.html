@@ -387,6 +387,13 @@
       flex: 1;
     }
 
+    .card-date {
+      font-size: 0.72rem;
+      color: var(--muted);
+      opacity: 0.6;
+      margin-top: 2px;
+    }
+
     .btn {
       display: inline-block;
       text-align: center;
@@ -559,6 +566,7 @@
          data-name="LLM Scraper"
          data-cats="web developer"
          data-added="1"
+         data-date="2026-03-23"
          data-href="llm-scraper.html">
       <div class="card-top">
         <div class="card-icon icon-blue">🔍</div>
@@ -581,6 +589,7 @@
          data-name="Bookmark Organizer"
          data-cats="web"
          data-added="2"
+         data-date="2026-03-23"
          data-href="bookmark-organizer.html">
       <div class="card-top">
         <div class="card-icon icon-green">🔖</div>
@@ -602,6 +611,7 @@
          data-name="MultiSearch"
          data-cats="search"
          data-added="3"
+         data-date="2026-03-23"
          data-href="search-compare.html">
       <div class="card-top">
         <div class="card-icon icon-purple">⚡</div>
@@ -623,6 +633,7 @@
          data-name="DataView"
          data-cats="data developer"
          data-added="4"
+         data-date="2026-03-23"
          data-href="data-viewer.html">
       <div class="card-top">
         <div class="card-icon icon-blue">📊</div>
@@ -645,6 +656,7 @@
          data-name="CardPreview"
          data-cats="web developer"
          data-added="5"
+         data-date="2026-03-23"
          data-href="url-preview.html">
       <div class="card-top">
         <div class="card-icon icon-green">🔗</div>
@@ -667,6 +679,7 @@
          data-name="HN Watch"
          data-cats="web search"
          data-added="6"
+         data-date="2026-03-23"
          data-href="hn-monitor.html">
       <div class="card-top">
         <div class="card-icon icon-purple">📡</div>
@@ -689,6 +702,7 @@
          data-name="InvoiceGen"
          data-cats="web"
          data-added="7"
+         data-date="2026-03-23"
          data-href="invoice-gen.html">
       <div class="card-top">
         <div class="card-icon icon-green">🧾</div>
@@ -710,6 +724,7 @@
          data-name="APITest"
          data-cats="developer"
          data-added="8"
+         data-date="2026-03-23"
          data-href="api-tester.html">
       <div class="card-top">
         <div class="card-icon icon-blue">🔌</div>
@@ -731,6 +746,7 @@
          data-name="HashGen"
          data-cats="web"
          data-added="9"
+         data-date="2026-03-23"
          data-href="hashtag-gen.html">
       <div class="card-top">
         <div class="card-icon icon-purple">#️⃣</div>
@@ -847,7 +863,7 @@
           return -getLikeCount(card.dataset.id); // descending
         }
         if (currentSort === 'newest') {
-          return Number(card.dataset.added); // ascending (lower = older... but all same date, use added order)
+          return -Number(card.dataset.added); // descending (highest = newest first)
         }
         if (currentSort === 'az') {
           return (card.dataset.name || '').toLowerCase();
@@ -986,6 +1002,18 @@
         // Re-sort if sorted by popular
         if (currentSort === 'popular') {
           applyFiltersAndSort();
+        }
+      });
+
+      /* ── Add date labels to cards ── */
+      ALL_CARDS.forEach(function(card) {
+        var date = card.dataset.date;
+        if (date) {
+          var dateEl = document.createElement('div');
+          dateEl.className = 'card-date';
+          dateEl.textContent = 'Released: ' + date;
+          var btn = card.querySelector('.btn');
+          if (btn) card.insertBefore(dateEl, btn);
         }
       });
 
