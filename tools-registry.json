@@ -1,0 +1,228 @@
+{
+  "version": 1,
+  "lastUpdated": "2026-03-24T00:34:25Z",
+  "tools": [
+    {
+      "slug": "llm-scraper",
+      "title": "LLM Scraper",
+      "description": "Convert any webpage into clean, LLM-ready markdown text. Strip noise, extract signal.",
+      "category": "developer",
+      "keyFeatures": [
+        "Web to markdown conversion",
+        "Noise removal",
+        "LLM-optimized output"
+      ],
+      "createdAt": "2026-03-23T00:10:10Z",
+      "source": "manual",
+      "sourceUrl": "",
+      "liveUrl": "https://beelinkfarm.github.io/micro-tools/llm-scraper.html",
+      "status": "deployed",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "bookmark-organizer",
+      "title": "Smart Bookmark Organizer",
+      "description": "Organize and manage bookmarks with smart categorization and search.",
+      "category": "productivity",
+      "keyFeatures": [
+        "Smart categorization",
+        "Search",
+        "Import/export"
+      ],
+      "createdAt": "2026-03-23T00:10:10Z",
+      "source": "manual",
+      "sourceUrl": "",
+      "liveUrl": "https://beelinkfarm.github.io/micro-tools/bookmark-organizer.html",
+      "status": "deployed",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "search-compare",
+      "title": "MultiSearch",
+      "description": "Compare search results across multiple search engines side by side.",
+      "category": "search",
+      "keyFeatures": [
+        "Multi-engine search",
+        "Side-by-side comparison",
+        "Quick switching"
+      ],
+      "createdAt": "2026-03-23T00:10:10Z",
+      "source": "manual",
+      "sourceUrl": "",
+      "liveUrl": "https://beelinkfarm.github.io/micro-tools/search-compare.html",
+      "status": "deployed",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "data-viewer",
+      "title": "DataView",
+      "description": "Paste JSON or CSV data, instantly visualize in tables, edit inline, and export.",
+      "category": "data",
+      "keyFeatures": [
+        "JSON/CSV viewing",
+        "Sortable tables",
+        "Inline editing",
+        "Export"
+      ],
+      "createdAt": "2026-03-23T02:05:39Z",
+      "source": "manual",
+      "sourceUrl": "",
+      "liveUrl": "https://beelinkfarm.github.io/micro-tools/data-viewer.html",
+      "status": "deployed",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "url-preview",
+      "title": "CardPreview",
+      "description": "Generate and preview social media cards for any URL.",
+      "category": "web",
+      "keyFeatures": [
+        "Social card preview",
+        "Multi-platform support",
+        "OG tag analysis"
+      ],
+      "createdAt": "2026-03-23T02:05:39Z",
+      "source": "manual",
+      "sourceUrl": "",
+      "liveUrl": "https://beelinkfarm.github.io/micro-tools/url-preview.html",
+      "status": "deployed",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "hn-monitor",
+      "title": "HN Watch",
+      "description": "Monitor Hacker News threads for new comments. Watch discussions, get notified of updates.",
+      "category": "developer",
+      "keyFeatures": [
+        "Thread monitoring",
+        "New comment tracking",
+        "Real-time updates"
+      ],
+      "createdAt": "2026-03-23T02:05:39Z",
+      "source": "manual",
+      "sourceUrl": "",
+      "liveUrl": "https://beelinkfarm.github.io/micro-tools/hn-monitor.html",
+      "status": "deployed",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "invoice-gen",
+      "title": "InvoiceGen",
+      "description": "Create professional invoices instantly. No signup, no tracking, runs in your browser.",
+      "category": "business",
+      "keyFeatures": [
+        "Professional templates",
+        "PDF export",
+        "No signup required"
+      ],
+      "createdAt": "2026-03-23T03:56:16Z",
+      "source": "manual",
+      "sourceUrl": "",
+      "liveUrl": "https://beelinkfarm.github.io/micro-tools/invoice-gen.html",
+      "status": "deployed",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "api-tester",
+      "title": "APITest",
+      "description": "Test API endpoints instantly in your browser. Free Postman alternative.",
+      "category": "developer",
+      "keyFeatures": [
+        "API endpoint testing",
+        "Request/response viewer",
+        "No installation"
+      ],
+      "createdAt": "2026-03-23T03:56:16Z",
+      "source": "manual",
+      "sourceUrl": "",
+      "liveUrl": "https://beelinkfarm.github.io/micro-tools/api-tester.html",
+      "status": "deployed",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "hashtag-gen",
+      "title": "HashGen",
+      "description": "Generate relevant hashtags for Instagram, Twitter, TikTok, and more.",
+      "category": "social",
+      "keyFeatures": [
+        "Smart hashtag generation",
+        "Multi-platform support",
+        "Trending tags"
+      ],
+      "createdAt": "2026-03-23T03:56:16Z",
+      "source": "manual",
+      "sourceUrl": "",
+      "liveUrl": "https://beelinkfarm.github.io/micro-tools/hashtag-gen.html",
+      "status": "deployed",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "color-palette-generator",
+      "title": "Color Palette Generator",
+      "description": "Generate beautiful harmonious color palettes instantly in your browser.",
+      "category": "design",
+      "keyFeatures": [
+        "Harmony modes",
+        "Color theory based",
+        "Export palettes"
+      ],
+      "createdAt": "2026-03-23T14:08:16Z",
+      "source": "hackernews",
+      "sourceUrl": "",
+      "liveUrl": "https://beelinkfarm.github.io/micro-tools/tools/color-palette-generator/",
+      "status": "deployed",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "csv-to-json-converter",
+      "title": "CSV to JSON Converter",
+      "description": "A browser-based tool that converts CSV files to JSON format instantly without uploading data anywhere.",
+      "category": "data",
+      "keyFeatures": [
+        "CSV to JSON conversion",
+        "No data upload",
+        "Instant processing"
+      ],
+      "createdAt": "2026-03-23T13:53:10Z",
+      "source": "hackernews",
+      "sourceUrl": "",
+      "liveUrl": "https://beelinkfarm.github.io/micro-tools/tools/csv-to-json-converter/",
+      "status": "deployed",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "csv-to-json-mapper",
+      "title": "CSV to JSON Mapper",
+      "description": "CSV to JSON converter with column mapping support.",
+      "category": "data",
+      "keyFeatures": [
+        "Column mapping",
+        "CSV to JSON",
+        "Custom field names"
+      ],
+      "createdAt": "2026-03-23T16:09:26Z",
+      "source": "hackernews",
+      "sourceUrl": "",
+      "liveUrl": "https://beelinkfarm.github.io/micro-tools/tools/csv-to-json-mapper/",
+      "status": "deployed",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "image-color-palette-generator",
+      "title": "Image Color Palette Generator",
+      "description": "Extract dominant colors from uploaded images with drag and drop support.",
+      "category": "design",
+      "keyFeatures": [
+        "Image color extraction",
+        "Drag and drop",
+        "Hex code output"
+      ],
+      "createdAt": "2026-03-24T00:19:46Z",
+      "source": "hackernews",
+      "sourceUrl": "",
+      "liveUrl": "https://beelinkfarm.github.io/micro-tools/tools/image-color-palette-generator/",
+      "status": "deployed",
+      "version": "1.0.0"
+    }
+  ]
+}
