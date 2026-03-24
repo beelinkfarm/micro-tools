@@ -1,0 +1,20 @@
+{
+  "floatingNav": {
+    "css": ".mt-floating-nav {\n  position: fixed; top: 0; left: 0; right: 0; z-index: 10000;\n  display: flex; align-items: center; justify-content: space-between;\n  padding: 8px 16px; height: 48px;\n  background: rgba(13,13,15,0.92);\n  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);\n  border-bottom: 1px solid #2a2a35;\n  font-family: Inter, -apple-system, sans-serif; font-size: 13px;\n}\n.mt-floating-nav a, .mt-floating-nav button {\n  text-decoration: none; border: none; cursor: pointer;\n  padding: 5px 10px; border-radius: 6px; font-size: 13px;\n  transition: background 0.2s, color 0.2s;\n}\n.mt-floating-nav .mt-nav-left { display: flex; align-items: center; gap: 6px; }\n.mt-floating-nav .mt-nav-right { display: flex; align-items: center; gap: 6px; }\n.mt-floating-nav .mt-nav-back,\n.mt-floating-nav .mt-nav-home {\n  background: transparent; color: #aaa;\n}\n.mt-floating-nav .mt-nav-back:hover,\n.mt-floating-nav .mt-nav-home:hover { background: #1a1a1f; color: #e8e8e8; }\n.mt-floating-nav .mt-nav-title {\n  color: #f0a500; font-family: Syne, sans-serif; font-weight: 700;\n  font-size: 14px; margin-left: 4px;\n}\n.mt-floating-nav .mt-nav-bmc {\n  background: rgba(240,165,0,0.15); color: #f0a500;\n}\n.mt-floating-nav .mt-nav-bmc:hover { background: rgba(240,165,0,0.3); }\n.mt-floating-nav .mt-nav-feedback {\n  background: rgba(240,165,0,0.1); color: #f0a500;\n}\n.mt-floating-nav .mt-nav-feedback:hover { background: rgba(240,165,0,0.25); }\n@media (max-width: 480px) {\n  .mt-floating-nav { padding: 6px 10px; font-size: 12px; }\n  .mt-floating-nav a, .mt-floating-nav button { padding: 4px 7px; font-size: 12px; }\n  .mt-floating-nav .mt-nav-title { font-size: 12px; }\n}",
+    "html": "<nav class=\"mt-floating-nav\">\n  <div class=\"mt-nav-left\">\n    <button class=\"mt-nav-back\" onclick=\"history.back()\" title=\"Go back\">&larr; Back</button>\n    <a class=\"mt-nav-home\" href=\"https://beelinkfarm.github.io/micro-tools/\" title=\"Home\">&#x1F3E0; Home</a>\n    <span class=\"mt-nav-title\">{{TOOL_TITLE}}</span>\n  </div>\n  <div class=\"mt-nav-right\">\n    <a class=\"mt-nav-bmc\" href=\"https://buymeacoffee.com/beelinkfarm\" target=\"_blank\" rel=\"noopener\">&#x2615; Support</a>\n    <a class=\"mt-nav-feedback\" href=\"https://github.com/beelinkfarm/micro-tools/issues/new?title=[Feedback]%20{{TOOL_TITLE}}&body=Tool:%20{{TOOL_TITLE}}%0ADescription:%20\" target=\"_blank\" rel=\"noopener\">&#x1F4AC; Feedback</a>\n  </div>\n</nav>"
+  },
+  "analytics": {
+    "gaId": "G-293GLNTDLQ"
+  },
+  "giscus": {
+    "repo": "beelinkfarm/micro-tools",
+    "repoId": "R_kgDORt_Frg",
+    "category": "Announcements",
+    "categoryId": "DIC_kwDORt_Frs4C5Djz",
+    "mapping": "pathname",
+    "theme": "dark_dimmed"
+  },
+  "support": {
+    "bmcUrl": "https://buymeacoffee.com/beelinkfarm"
+  }
+}
