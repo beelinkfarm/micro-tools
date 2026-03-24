@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-03-24T00:34:25Z",
+  "lastUpdated": "2026-03-24T00:59:51.042Z",
   "tools": [
     {
       "slug": "llm-scraper",
@@ -221,6 +221,21 @@
       "source": "hackernews",
       "sourceUrl": "",
       "liveUrl": "https://beelinkfarm.github.io/micro-tools/tools/image-color-palette-generator/",
+      "status": "deployed",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "test-registry",
+      "title": "테스트",
+      "description": "테스트 도구",
+      "category": "web",
+      "keyFeatures": [
+        "테스트"
+      ],
+      "createdAt": "2026-03-24T00:59:51.042Z",
+      "source": "hackernews",
+      "sourceUrl": "",
+      "liveUrl": "https://beelinkfarm.github.io/micro-tools/tools/test-registry/",
       "status": "deployed",
       "version": "1.0.0"
     }
