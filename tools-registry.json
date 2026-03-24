@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-03-24T00:59:51.042Z",
+  "lastUpdated": "2026-03-24T01:15:37.278Z",
   "tools": [
     {
       "slug": "llm-scraper",
@@ -176,19 +176,15 @@
     {
       "slug": "csv-to-json-converter",
       "title": "CSV to JSON Converter",
-      "description": "A browser-based tool that converts CSV files to JSON format instantly without uploading data anywhere.",
-      "category": "data",
-      "keyFeatures": [
-        "CSV to JSON conversion",
-        "No data upload",
-        "Instant processing"
-      ],
+      "description": "A client-side CSV to JSON converter with formatting options",
+      "category": "web",
+      "keyFeatures": [],
       "createdAt": "2026-03-23T13:53:10Z",
       "source": "hackernews",
-      "sourceUrl": "",
+      "sourceUrl": "https://news.ycombinator.com/item?id=test001",
       "liveUrl": "https://beelinkfarm.github.io/micro-tools/tools/csv-to-json-converter/",
       "status": "deployed",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "slug": "csv-to-json-mapper",
