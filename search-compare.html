@@ -4,8 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MultiSearch — Compare Search Engines</title>
+<meta name="description" content="Compare search results from Google, Bing, DuckDuckGo, Brave, and Perplexity side by side. Free, no signup required.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<meta property="og:title" content="MultiSearch — Compare Search Engines">
+<meta property="og:description" content="Compare search results from Google, Bing, DuckDuckGo, Brave, and Perplexity side by side. Free, no signup required.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://beelinkfarm.github.io/micro-tools/search-compare.html">
+<link rel="canonical" href="https://beelinkfarm.github.io/micro-tools/search-compare.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
   /* ── Design tokens ── */
   :root {
@@ -953,7 +962,7 @@
         <kbd>H</kbd> <span style="font-size:12px;color:var(--text2)">history</span>
       </div>
     </div>
-    <div id="panels-container"></div>
+    <div id="panels-container" aria-live="polite"></div>
   </div>
 
   <!-- Footer -->

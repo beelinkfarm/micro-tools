@@ -5,8 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DataView — JSON &amp; CSV Viewer</title>
 <meta name="description" content="Paste JSON or CSV data, instantly visualize in tables, edit inline, and export. Free, runs in your browser.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<meta property="og:title" content="DataView — JSON & CSV Viewer">
+<meta property="og:description" content="Paste JSON or CSV data, instantly visualize in tables, edit inline, and export. Free, runs in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://beelinkfarm.github.io/micro-tools/data-viewer.html">
+<link rel="canonical" href="https://beelinkfarm.github.io/micro-tools/data-viewer.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap');
 
   /* ── Design tokens ── */
   :root {
@@ -80,6 +88,7 @@
   .orb-3 { width: 350px; height: 350px; background: #5b9cf6; top: 50%; left: 60%; animation-delay: -5s; }
 
   [data-theme="light"] .orb { opacity: 0.04; }
+  @media (prefers-reduced-motion: reduce) { .orb, .orb-1, .orb-2, .orb-3 { animation: none !important; } }
 
   @keyframes drift {
     from { transform: translate(0, 0) scale(1); }
@@ -977,7 +986,7 @@
   </div>
 
   <!-- Data viewport -->
-  <div class="data-viewport" id="data-viewport">
+  <div class="data-viewport" id="data-viewport" aria-live="polite">
 
     <!-- Table view -->
     <div id="view-table">
@@ -1405,7 +1414,7 @@ function renderCell(td, val, row, key) {
     const preview = Array.isArray(val)
       ? `[Array(${val.length})]`
       : `{${Object.keys(val).slice(0,3).join(', ')}${Object.keys(val).length > 3 ? '…' : ''}}`;
-    td.innerHTML = `<span class="obj-val" title="${escapeHtml(JSON.stringify(val))}">${escapeHtml(preview)}</span>`;
+    td.innerHTML = `<span class="obj-val" title="${escHtml(JSON.stringify(val))}">${escHtml(preview)}</span>`;
   } else {
     const str = String(val);
     td.title = str;
@@ -1812,7 +1821,7 @@ function toast(msg, icon) {
 /* ─────────────────────────────────────────────────
    UTILITY
 ───────────────────────────────────────────────── */
-function escapeHtml(s) {
+function escHtml(s) {
   return String(s)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

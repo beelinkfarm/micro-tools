@@ -5,8 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>InvoiceGen — Free Invoice Generator</title>
 <meta name="description" content="Create professional invoices instantly. No signup, no tracking, runs in your browser.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<meta property="og:title" content="InvoiceGen — Free Invoice Generator">
+<meta property="og:description" content="Create professional invoices instantly. No signup, no tracking, runs in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://beelinkfarm.github.io/micro-tools/invoice-gen.html">
+<link rel="canonical" href="https://beelinkfarm.github.io/micro-tools/invoice-gen.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap');
 
   /* ── Design tokens ── */
   :root {
@@ -81,6 +89,7 @@
   .orb-3 { width: 350px; height: 350px; background: #5b9cf6; top: 50%; left: 60%; animation-delay: -5s; }
 
   [data-theme="light"] .orb { opacity: 0.04; }
+  @media (prefers-reduced-motion: reduce) { .orb, .orb-1, .orb-2, .orb-3 { animation: none !important; } }
 
   @keyframes drift {
     from { transform: translate(0, 0) scale(1); }
@@ -1072,7 +1081,7 @@
             <button class="btn btn-accent" onclick="window.print()">&#128196; Print / PDF</button>
           </div>
           <div class="panel-body" style="padding:16px;">
-            <div class="preview-frame" id="preview-frame">
+            <div class="preview-frame" id="preview-frame" aria-live="polite">
               <!-- rendered by JS -->
             </div>
           </div>
@@ -1185,7 +1194,7 @@
       state.items.forEach(row => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td class="col-desc"><input type="text" value="${esc(row.desc)}" placeholder="Service description" data-id="${row.id}" data-field="desc"></td>
+          <td class="col-desc"><input type="text" value="${escHtml(row.desc)}" placeholder="Service description" data-id="${row.id}" data-field="desc"></td>
           <td class="col-qty"><input type="number" value="${row.qty}" min="0" step="any" style="text-align:right;" data-id="${row.id}" data-field="qty"></td>
           <td class="col-price"><input type="number" value="${row.price}" min="0" step="any" style="text-align:right;" data-id="${row.id}" data-field="price"></td>
           <td class="col-total"><div class="item-total-display" id="row-total-${row.id}">${fmtMoney(row.qty * row.price)}</div></td>
@@ -1216,12 +1225,12 @@
   }
 
   /* ── Escape HTML ── */
-  function esc(str) {
+  function escHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   function nl2br(str) {
-    return esc(str).replace(/\n/g, '<br>');
+    return escHtml(str).replace(/\n/g, '<br>');
   }
 
   /* ── Preview Render ── */
@@ -1248,10 +1257,10 @@
     // Build party address HTML
     function partyInfo(name, addr, email, phone) {
       let parts = [];
-      if (name) parts.push(`<div class="inv-party-name">${esc(name)}</div>`);
+      if (name) parts.push(`<div class="inv-party-name">${escHtml(name)}</div>`);
       if (addr) parts.push(`<div class="inv-party-addr">${nl2br(addr)}</div>`);
-      if (email) parts.push(`<div class="inv-party-addr">${esc(email)}</div>`);
-      if (phone) parts.push(`<div class="inv-party-addr">${esc(phone)}</div>`);
+      if (email) parts.push(`<div class="inv-party-addr">${escHtml(email)}</div>`);
+      if (phone) parts.push(`<div class="inv-party-addr">${escHtml(phone)}</div>`);
       return parts.join('') || `<div class="inv-party-addr" style="color:#aaa;">—</div>`;
     }
 
@@ -1262,7 +1271,7 @@
       }
       return state.items.map(r => `
         <tr>
-          <td>${esc(r.desc) || '<em style="opacity:.5">—</em>'}</td>
+          <td>${escHtml(r.desc) || '<em style="opacity:.5">—</em>'}</td>
           <td style="text-align:right;">${r.qty}</td>
           <td style="text-align:right;">${fmtMoney(r.price)}</td>
           <td>${fmtMoney(r.qty * r.price)}</td>
@@ -1292,12 +1301,12 @@
         <div class="inv tpl-clean">
           <div class="inv-header">
             <div>
-              <div class="inv-brand">${esc(fromName) || 'Your Company'}</div>
+              <div class="inv-brand">${escHtml(fromName) || 'Your Company'}</div>
             </div>
             <div>
               <div class="inv-title-badge">INVOICE</div>
               <div class="inv-meta">
-                ${invNum ? `<div><strong>#${esc(invNum)}</strong></div>` : ''}
+                ${invNum ? `<div><strong>#${escHtml(invNum)}</strong></div>` : ''}
                 ${invDate ? `<div>Issued: ${fmtDate(invDate)}</div>` : ''}
                 ${invDue ? `<div>Due: ${fmtDate(invDue)}</div>` : ''}
               </div>
@@ -1332,13 +1341,13 @@
         <div class="inv tpl-modern">
           <div class="inv-header">
             <div>
-              <div class="inv-brand">${esc(fromName) || 'Your Company'}</div>
-              <div class="inv-brand-sub">${esc(fromEmail)}${fromEmail && fromPhone ? ' &middot; ' : ''}${esc(fromPhone)}</div>
+              <div class="inv-brand">${escHtml(fromName) || 'Your Company'}</div>
+              <div class="inv-brand-sub">${escHtml(fromEmail)}${fromEmail && fromPhone ? ' &middot; ' : ''}${escHtml(fromPhone)}</div>
             </div>
             <div>
               <div class="inv-title-badge">INVOICE</div>
               <div class="inv-meta">
-                ${invNum ? `#${esc(invNum)}&nbsp;&nbsp;` : ''}${invDate ? fmtDate(invDate) : ''}
+                ${invNum ? `#${escHtml(invNum)}&nbsp;&nbsp;` : ''}${invDate ? fmtDate(invDate) : ''}
                 ${invDue ? `<br>Due: ${fmtDate(invDue)}` : ''}
               </div>
             </div>
@@ -1371,11 +1380,11 @@
       html = `
         <div class="inv tpl-minimal">
           <div class="inv-header">
-            <div class="inv-brand">${esc(fromName) || 'Your Company'}</div>
+            <div class="inv-brand">${escHtml(fromName) || 'Your Company'}</div>
             <div>
               <div class="inv-title-badge">Invoice</div>
               <div class="inv-meta">
-                ${invNum ? `No. ${esc(invNum)}` : ''}
+                ${invNum ? `No. ${escHtml(invNum)}` : ''}
                 ${invDate ? ` &middot; ${fmtDate(invDate)}` : ''}
                 ${invDue ? `<br>Due: ${fmtDate(invDue)}` : ''}
               </div>
@@ -1576,8 +1585,8 @@
 
       return `
         <div class="draft-card" data-id="${d.id}" title="Load draft">
-          <div class="dc-num">${esc(d.invNumber) || 'Draft'}</div>
-          <div class="dc-client">${esc(d.toName) || 'No client'}</div>
+          <div class="dc-num">${escHtml(d.invNumber) || 'Draft'}</div>
+          <div class="dc-client">${escHtml(d.toName) || 'No client'}</div>
           <div class="dc-amount">${grandFmt}</div>
           <div class="dc-date">${savedDate}</div>
           <button class="dc-del" data-del="${d.id}" title="Delete">&times;</button>

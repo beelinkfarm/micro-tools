@@ -5,8 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>APITest — Browser-Based API Tester</title>
 <meta name="description" content="Test API endpoints instantly in your browser. No install, no signup, no data collection. Free Postman alternative.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<meta property="og:title" content="APITest — Browser-Based API Tester">
+<meta property="og:description" content="Test API endpoints instantly in your browser. No install, no signup, no data collection. Free Postman alternative.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://beelinkfarm.github.io/micro-tools/api-tester.html">
+<link rel="canonical" href="https://beelinkfarm.github.io/micro-tools/api-tester.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap');
 
   /* ── Design tokens ── */
   :root {
@@ -80,6 +88,7 @@
   .orb-2 { width: 500px; height: 500px; background: #ff6b35; bottom: -150px; right: -100px; animation-delay: -9s; }
   .orb-3 { width: 350px; height: 350px; background: #5b9cf6; top: 50%; left: 60%; animation-delay: -5s; }
   [data-theme="light"] .orb { opacity: 0.04; }
+  @media (prefers-reduced-motion: reduce) { .orb, .orb-1, .orb-2, .orb-3 { animation: none !important; } }
 
   @keyframes drift {
     from { transform: translate(0, 0) scale(1); }
@@ -1028,7 +1037,7 @@
 
     <!-- Right: Response -->
     <div>
-      <div class="panel" id="response-panel">
+      <div class="panel" id="response-panel" aria-live="polite">
         <div class="panel-header">
           <div class="panel-title">&#128204; Response</div>
           <div style="display:flex;gap:8px;" id="resp-actions" style="display:none;">

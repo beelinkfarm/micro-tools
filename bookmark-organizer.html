@@ -1,11 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Smart Bookmark Organizer</title>
+<meta name="description" content="Organize your browser bookmarks with smart tagging and categorization. Import, clean up, and export links. Free, runs in your browser.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<meta property="og:title" content="Smart Bookmark Organizer">
+<meta property="og:description" content="Organize your browser bookmarks with smart tagging and categorization. Import, clean up, and export links. Free, runs in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://beelinkfarm.github.io/micro-tools/bookmark-organizer.html">
+<link rel="canonical" href="https://beelinkfarm.github.io/micro-tools/bookmark-organizer.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
 
   :root {
     --bg: #0a0a0f;
@@ -17,12 +26,12 @@
     --text: #f0f0f8;
     --text-2: #9898b0;
     --text-3: #5a5a72;
-    --accent: #6c63ff;
-    --accent-2: #ff6b9d;
+    --accent: #f0a500;
+    --accent-2: #ff6b35;
     --accent-3: #00d4aa;
     --accent-4: #ffb347;
-    --gradient: linear-gradient(135deg, #6c63ff 0%, #ff6b9d 100%);
-    --gradient-2: linear-gradient(135deg, #00d4aa 0%, #6c63ff 100%);
+    --gradient: linear-gradient(135deg, #f0a500 0%, #ff6b35 100%);
+    --gradient-2: linear-gradient(135deg, #00d4aa 0%, #f0a500 100%);
     --shadow: 0 8px 32px rgba(0,0,0,0.4);
     --shadow-lg: 0 20px 60px rgba(0,0,0,0.6);
     --radius: 16px;
@@ -43,8 +52,8 @@
     --text: #0f0f1a;
     --text-2: #4a4a6a;
     --text-3: #9898b8;
-    --shadow: 0 8px 32px rgba(108,99,255,0.08);
-    --shadow-lg: 0 20px 60px rgba(108,99,255,0.12);
+    --shadow: 0 8px 32px rgba(240,165,0,0.08);
+    --shadow-lg: 0 20px 60px rgba(240,165,0,0.12);
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -82,11 +91,12 @@
     z-index: 0;
     animation: drift 20s ease-in-out infinite alternate;
   }
-  .orb-1 { width: 600px; height: 600px; background: #6c63ff; top: -200px; left: -100px; }
+  .orb-1 { width: 600px; height: 600px; background: #f0a500; top: -200px; left: -100px; }
   .orb-2 { width: 500px; height: 500px; background: #ff6b9d; bottom: -150px; right: -100px; animation-delay: -8s; }
   .orb-3 { width: 400px; height: 400px; background: #00d4aa; top: 40%; left: 50%; transform: translate(-50%,-50%); animation-delay: -4s; }
 
   [data-theme="light"] .orb { opacity: 0.06; }
+  @media (prefers-reduced-motion: reduce) { .orb, .orb-1, .orb-2, .orb-3 { animation: none !important; } }
 
   @keyframes drift {
     0% { transform: translate(0, 0) scale(1); }
@@ -120,7 +130,7 @@
     display: grid;
     place-items: center;
     font-size: 20px;
-    box-shadow: 0 4px 20px rgba(108,99,255,0.4);
+    box-shadow: 0 4px 20px rgba(240,165,0,0.4);
   }
 
   .logo-text {
@@ -234,12 +244,12 @@
     font-weight: 600;
     cursor: pointer;
     transition: all var(--transition);
-    box-shadow: 0 4px 20px rgba(108,99,255,0.35);
+    box-shadow: 0 4px 20px rgba(240,165,0,0.35);
   }
 
   .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(108,99,255,0.5);
+    box-shadow: 0 8px 30px rgba(240,165,0,0.5);
   }
 
   .upload-hint {
@@ -331,7 +341,7 @@
     border-color: var(--accent);
     color: var(--accent);
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(108,99,255,0.15);
+    box-shadow: 0 4px 16px rgba(240,165,0,0.15);
   }
 
   /* ── Stats grid ── */
@@ -528,7 +538,7 @@
 
   .search-input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+    box-shadow: 0 0 0 3px rgba(240,165,0,0.15);
   }
 
   .search-icon {
@@ -556,7 +566,7 @@
 
   .filter-select:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+    box-shadow: 0 0 0 3px rgba(240,165,0,0.15);
   }
 
   /* ── Bookmarks list ── */
@@ -652,7 +662,7 @@
   }
 
   /* ── Category chip colors ── */
-  .tag-cat { background: rgba(108,99,255,0.12); color: var(--accent); }
+  .tag-cat { background: rgba(240,165,0,0.12); color: var(--accent); }
 
   /* ── Duplicates section ── */
   .dupe-group {
@@ -1052,7 +1062,7 @@
             <option value="cat">By Category</option>
           </select>
         </div>
-        <div class="bookmarks-wrap" id="bookmarksList" role="list"></div>
+        <div class="bookmarks-wrap" id="bookmarksList" role="list" aria-live="polite"></div>
         <div class="pagination" id="pagination"></div>
       </div>
 
@@ -1135,7 +1145,7 @@ const CATEGORIES = [
     id: 'dev',
     label: 'Development',
     emoji: '💻',
-    color: '#6c63ff',
+    color: '#f0a500',
     keywords: ['github','gitlab','stackoverflow','npm','docker','kubernetes','aws','azure','gcp','cloud','api','git','code','dev','programming','linux','ubuntu','terminal','bash','python','javascript','typescript','react','vue','angular','node','rust','golang','java','c++','cpp','ruby','php','mysql','postgres','mongodb','redis','graphql','rest','json','yaml','vercel','netlify','heroku','digitalocean','firebase','supabase','planetscale','railway','render','replit','codepen','jsfiddle','codesandbox','vscode','jetbrains','intellij','xcode','android','ios','flutter','kotlin','swift'],
   },
   {
@@ -1553,15 +1563,15 @@ function renderBookmarksList() {
 
     return `
       <div class="bookmark-item" role="listitem" tabindex="0"
-           onclick="window.open('${escapeAttr(b.url)}','_blank','noopener')"
-           onkeydown="if(event.key==='Enter')window.open('${escapeAttr(b.url)}','_blank','noopener')"
+           onclick="window.open('${escapeAttr(safeUrl(b.url))}','_blank','noopener')"
+           onkeydown="if(event.key==='Enter')window.open('${escapeAttr(safeUrl(b.url))}','_blank','noopener')"
            title="${escapeAttr(b.title)}">
         <div class="bookmark-favicon">
           <img src="${faviconUrl}" alt="" width="16" height="16" loading="lazy" onerror="this.style.display='none';this.parentElement.textContent='🔗'">
         </div>
         <div class="bookmark-info">
-          <div class="bookmark-title">${escapeHTML(b.title)}</div>
-          <div class="bookmark-url">${escapeHTML(domain)}</div>
+          <div class="bookmark-title">${escHtml(b.title)}</div>
+          <div class="bookmark-url">${escHtml(domain)}</div>
           <div class="bookmark-tags">${tags.join('')}</div>
         </div>
       </div>
@@ -1625,8 +1635,8 @@ function renderDuplicates(bookmarks) {
 
   list.innerHTML = dupeGroups.slice(0, 20).map(group => `
     <div class="dupe-group">
-      <div class="dupe-title">♊ ${group.length} copies — "${escapeHTML(group[0].title.slice(0, 60))}"</div>
-      ${group.map(b => `<div class="dupe-item" title="${escapeAttr(b.url)}">${escapeHTML(b.url)}</div>`).join('')}
+      <div class="dupe-title">♊ ${group.length} copies — "${escHtml(group[0].title.slice(0, 60))}"</div>
+      ${group.map(b => `<div class="dupe-item" title="${escapeAttr(b.url)}">${escHtml(b.url)}</div>`).join('')}
     </div>
   `).join('');
 
@@ -1670,7 +1680,7 @@ document.getElementById('exportHtmlBtn').addEventListener('click', () => {
   Object.entries(grouped).forEach(([cat, items]) => {
     html += `    <DT><H3>${cat}</H3>\n    <DL><p>\n`;
     items.forEach(b => {
-      html += `        <DT><A HREF="${escapeAttr(b.url)}">${escapeHTML(b.title)}</A>\n`;
+      html += `        <DT><A HREF="${escapeAttr(safeUrl(b.url))}">${escHtml(b.title)}</A>\n`;
     });
     html += `    </DL><p>\n`;
   });
@@ -1709,7 +1719,7 @@ document.getElementById('resetBtn').addEventListener('click', () => {
 /* ─────────────────────────────────────────────
    UTILS
 ───────────────────────────────────────────── */
-function escapeHTML(str) {
+function escHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -1719,6 +1729,16 @@ function escapeHTML(str) {
 
 function escapeAttr(str) {
   return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function safeUrl(url) {
+  try {
+    const u = new URL(url);
+    if (/^(javascript|data|vbscript):/i.test(u.protocol)) return '#';
+    return url;
+  } catch {
+    return /^(javascript|data|vbscript):/i.test(url) ? '#' : url;
+  }
 }
 
 /* ─────────────────────────────────────────────

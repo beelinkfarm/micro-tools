@@ -5,9 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HN Watch — Hacker News Thread Monitor</title>
   <meta name="description" content="Monitor Hacker News threads for new comments. Watch discussions, get notified of updates, never miss a reply." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <meta property="og:title" content="HN Watch — Hacker News Thread Monitor">
+  <meta property="og:description" content="Monitor Hacker News threads for new comments. Watch discussions, get notified of updates, never miss a reply.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://beelinkfarm.github.io/micro-tools/hn-monitor.html">
+  <link rel="canonical" href="https://beelinkfarm.github.io/micro-tools/hn-monitor.html">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js"></script>
   <style>
     /* ─── Reset & tokens ─────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -989,7 +996,7 @@
     <hr class="divider" id="mainDivider" style="display:none" />
 
     <!-- Current thread -->
-    <div id="threadSection" style="display:none">
+    <div id="threadSection" style="display:none" aria-live="polite">
       <div id="threadCard"></div>
     </div>
 
@@ -1185,11 +1192,11 @@ function renderComment(comment, readSet, depth = 0) {
   el.innerHTML = `
     <div class="comment-inner">
       <div class="comment-head">
-        <span class="comment-author">${esc(comment.by || 'anon')}</span>
+        <span class="comment-author">${escHtml(comment.by || 'anon')}</span>
         <span class="comment-time" title="${fmtDate(comment.time)}">${timeAgo(comment.time)}</span>
         ${isNew ? '<span class="new-badge">NEW</span>' : ''}
       </div>
-      <div class="comment-body">${comment.text || '<em style="opacity:0.5">[no text]</em>'}</div>
+      <div class="comment-body">${DOMPurify.sanitize(comment.text || '<em style="opacity:0.5">[no text]</em>')}</div>
       ${hasKids ? `
       <div class="comment-actions">
         <button class="toggle-kids" onclick="toggleKids('${kidsId}', this)">
@@ -1230,7 +1237,7 @@ function toggleKids(id, btn) {
   btn.querySelector('.toggle-icon').textContent = collapsed ? '▸' : '▾';
 }
 
-function esc(str) {
+function escHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
@@ -1253,15 +1260,15 @@ function renderThread(thread, readSet) {
   card.innerHTML = `
     <div class="thread-header">
       <div class="thread-title">
-        <a href="${esc(url)}" target="_blank" rel="noopener">${esc(thread.title || 'Ask HN / Show HN')}</a>
+        <a href="${escHtml(url)}" target="_blank" rel="noopener">${escHtml(thread.title || 'Ask HN / Show HN')}</a>
       </div>
       <div class="thread-meta">
         <span class="meta-item meta-score"><span class="icon">▲</span>${thread.score || 0} pts</span>
-        <span class="meta-item"><span class="icon">👤</span>${esc(thread.by || '')}</span>
+        <span class="meta-item"><span class="icon">👤</span>${escHtml(thread.by || '')}</span>
         <span class="meta-item"><span class="icon">🕐</span>${timeAgo(thread.time)}</span>
         <span class="meta-item"><span class="icon">💬</span>${totalComments} comments</span>
         ${newComments > 0 ? `<span class="meta-item meta-new">✦ ${newComments} new</span>` : ''}
-        <a class="meta-item" href="${esc(hnUrl)}" target="_blank" rel="noopener" style="color:var(--hn-orange);text-decoration:none">↗ HN</a>
+        <a class="meta-item" href="${escHtml(hnUrl)}" target="_blank" rel="noopener" style="color:var(--hn-orange);text-decoration:none">↗ HN</a>
       </div>
     </div>
     <div class="watch-bar">
@@ -1591,7 +1598,7 @@ function renderWatchedList() {
 
     card.innerHTML = `
       <div class="watched-info">
-        <div class="watched-title">${esc(w.title || String(w.id))}</div>
+        <div class="watched-title">${escHtml(w.title || String(w.id))}</div>
         <div class="watched-meta">
           <span title="Last checked">🕐 ${checkedAgo}</span>
           <span>💬 ${w.commentCount || 0} comments</span>

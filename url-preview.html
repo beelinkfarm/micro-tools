@@ -1,13 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CardPreview — Social Media Card Generator</title>
 <meta name="description" content="Generate and preview social media cards for any URL. See how your link looks on Twitter, Facebook, LinkedIn, Discord, and Slack.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 <meta property="og:title" content="CardPreview — Social Media Card Generator">
 <meta property="og:description" content="Generate and preview social media cards for any URL. See how your link looks on Twitter, Facebook, LinkedIn, Discord, and Slack.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://beelinkfarm.github.io/micro-tools/url-preview.html">
+<link rel="canonical" href="https://beelinkfarm.github.io/micro-tools/url-preview.html">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -89,6 +92,7 @@
   .orb-2 { width: 500px; height: 500px; background: #ff6b3d; bottom: -150px; right: -100px; animation-delay: -8s; }
   .orb-3 { width: 400px; height: 400px; background: #c800ff; top: 50%; left: 60%; animation-delay: -4s; opacity: 0.04; }
   [data-theme="light"] .orb { opacity: 0.04; }
+  @media (prefers-reduced-motion: reduce) { .orb, .orb-1, .orb-2, .orb-3 { animation: none !important; } }
 
   @keyframes drift {
     0% { transform: translate(0, 0) scale(1); }
@@ -1129,7 +1133,7 @@
   </div>
 
   <!-- Output -->
-  <div id="outputSection" style="display:none;" class="preview-section">
+  <div id="outputSection" style="display:none;" class="preview-section" aria-live="polite">
 
     <div class="preview-header">
       <div>
